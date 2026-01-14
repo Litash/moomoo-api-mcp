@@ -1,0 +1,236 @@
+"""Trade service for managing Moomoo trading context and account operations."""
+
+from moomoo import OpenSecTradeContext, RET_OK
+
+
+class TradeService:
+    """Service to manage Moomoo Trade API connections and account operations."""
+
+    def __init__(self, host: str = "127.0.0.1", port: int = 11111):
+        """Initialize TradeService.
+
+        Args:
+            host: Host address of OpenD gateway.
+            port: Port number of OpenD gateway.
+        """
+        self.host = host
+        self.port = port
+        self.trade_ctx: OpenSecTradeContext | None = None
+
+    def connect(self) -> None:
+        """Initialize connection to OpenD trade context."""
+        self.trade_ctx = OpenSecTradeContext(host=self.host, port=self.port)
+
+    def close(self) -> None:
+        """Close trade context connection."""
+        if self.trade_ctx:
+            self.trade_ctx.close()
+            self.trade_ctx = None
+
+    def get_accounts(self) -> list[dict]:
+        """Get list of trading accounts.
+
+        Returns:
+            List of account dictionaries with acc_id, trd_env, etc.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.get_acc_list()
+        if ret != RET_OK:
+            raise RuntimeError(f"get_acc_list failed: {data}")
+
+        return data.to_dict("records")
+
+    def get_assets(
+        self,
+        trd_env: str = "REAL",
+        acc_id: int = 0,
+        acc_index: int = 0,
+        refresh_cache: bool = False,
+        currency: str = "",
+    ) -> dict:
+        """Get account assets (cash, market value, etc.).
+
+        Args:
+            trd_env: Trading environment, 'REAL' or 'SIMULATE'.
+            acc_id: Account ID. If 0, uses acc_index.
+            acc_index: Account index (default first account).
+            refresh_cache: Whether to refresh the cache.
+            currency: Filter by currency.
+
+        Returns:
+            Dictionary with asset information.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.accinfo_query(
+            trd_env=trd_env,
+            acc_id=acc_id,
+            acc_index=acc_index,
+            refresh_cache=refresh_cache,
+            currency=currency,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"accinfo_query failed: {data}")
+
+        records = data.to_dict("records")
+        return records[0] if records else {}
+
+    def get_positions(
+        self,
+        code: str = "",
+        pl_ratio_min: float | None = None,
+        pl_ratio_max: float | None = None,
+        trd_env: str = "REAL",
+        acc_id: int = 0,
+        acc_index: int = 0,
+        refresh_cache: bool = False,
+    ) -> list[dict]:
+        """Get current positions.
+
+        Args:
+            code: Filter by stock code.
+            pl_ratio_min: Minimum profit/loss ratio filter.
+            pl_ratio_max: Maximum profit/loss ratio filter.
+            trd_env: Trading environment.
+            acc_id: Account ID.
+            acc_index: Account index.
+            refresh_cache: Whether to refresh cache.
+
+        Returns:
+            List of position dictionaries.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.position_list_query(
+            code=code,
+            pl_ratio_min=pl_ratio_min,
+            pl_ratio_max=pl_ratio_max,
+            trd_env=trd_env,
+            acc_id=acc_id,
+            acc_index=acc_index,
+            refresh_cache=refresh_cache,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"position_list_query failed: {data}")
+
+        return data.to_dict("records")
+
+    def get_max_tradable(
+        self,
+        order_type: str,
+        code: str,
+        price: float,
+        order_id: str = "",
+        adjust_limit: float = 0,
+        trd_env: str = "REAL",
+        acc_id: int = 0,
+        acc_index: int = 0,
+    ) -> dict:
+        """Get maximum tradable quantity for a stock.
+
+        Args:
+            order_type: Order type string (e.g., 'NORMAL').
+            code: Stock code.
+            price: Target price.
+            order_id: Optional order ID for modification.
+            adjust_limit: Adjust limit percentage.
+            trd_env: Trading environment.
+            acc_id: Account ID.
+            acc_index: Account index.
+
+        Returns:
+            Dictionary with max quantities for buy/sell.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.acctradinginfo_query(
+            order_type=order_type,
+            code=code,
+            price=price,
+            order_id=order_id,
+            adjust_limit=adjust_limit,
+            trd_env=trd_env,
+            acc_id=acc_id,
+            acc_index=acc_index,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"acctradinginfo_query failed: {data}")
+
+        records = data.to_dict("records")
+        return records[0] if records else {}
+
+    def get_margin_ratio(self, code_list: list[str]) -> list[dict]:
+        """Get margin ratio for stocks.
+
+        Args:
+            code_list: List of stock codes.
+
+        Returns:
+            List of margin ratio dictionaries.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.get_margin_ratio(code_list=code_list)
+        if ret != RET_OK:
+            raise RuntimeError(f"get_margin_ratio failed: {data}")
+
+        return data.to_dict("records")
+
+    def get_cash_flow(
+        self,
+        clearing_date: str = "",
+        trd_env: str = "REAL",
+        acc_id: int = 0,
+        acc_index: int = 0,
+    ) -> list[dict]:
+        """Get account cash flow history.
+
+        Args:
+            clearing_date: Filter by clearing date (YYYY-MM-DD).
+            trd_env: Trading environment.
+            acc_id: Account ID.
+            acc_index: Account index.
+
+        Returns:
+            List of cash flow record dictionaries.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.get_acc_cash_flow(
+            clearing_date=clearing_date,
+            trd_env=trd_env,
+            acc_id=acc_id,
+            acc_index=acc_index,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"get_acc_cash_flow failed: {data}")
+
+        return data.to_dict("records")
+
+    def unlock_trade(self, password: str | None = None, password_md5: str | None = None) -> None:
+        """Unlock trade for trading operations.
+
+        Args:
+            password: Plain text trade password.
+            password_md5: MD5 hash of trade password (alternative to password).
+
+        Raises:
+            RuntimeError: If unlock fails.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.unlock_trade(
+            password=password,
+            password_md5=password_md5,
+            is_unlock=True,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"unlock_trade failed: {data}")
