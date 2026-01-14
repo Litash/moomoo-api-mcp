@@ -14,7 +14,8 @@ async def test_check_health():
     mock_service.check_health.return_value = {"status": "connected", "host": "127.0.0.1:11111"}
     
     # Create AppContext with mock service
-    app_context = AppContext(moomoo_service=mock_service)
+    mock_trade_service = MagicMock()
+    app_context = AppContext(moomoo_service=mock_service, trade_service=mock_trade_service)
     
     # Mock Session and RequestContext
     mock_session = MagicMock()
@@ -49,7 +50,8 @@ async def test_check_health_disconnected():
     mock_service = MagicMock()
     mock_service.check_health.return_value = {"status": "disconnected", "error": "Mock error"}
     
-    app_context = AppContext(moomoo_service=mock_service)
+    mock_trade_service = MagicMock()
+    app_context = AppContext(moomoo_service=mock_service, trade_service=mock_trade_service)
     
     mock_session = MagicMock()
     mock_session.send_log_message = AsyncMock()
