@@ -12,7 +12,14 @@ async def get_accounts(
 ) -> list[dict]:
     """Get list of trading accounts.
 
-    Returns list of account dictionaries with acc_id, account type, etc.
+    Returns list of account dictionaries with acc_id, trd_env (REAL/SIMULATE), etc.
+
+    IMPORTANT: This returns both REAL and SIMULATE accounts. To access REAL account
+    data via other tools (get_assets, get_positions, etc.), you must first call
+    unlock_trade with the trading password.
+
+    Returns:
+        List of account dictionaries containing acc_id, trd_env, and other metadata.
     """
     trade_service = ctx.request_context.lifespan_context.trade_service
     accounts = trade_service.get_accounts()
@@ -23,7 +30,7 @@ async def get_accounts(
 @mcp.tool()
 async def get_assets(
     ctx: Context[ServerSession, AppContext],
-    trd_env: str = "REAL",
+    trd_env: str = "SIMULATE",
     acc_id: int = 0,
     acc_index: int = 0,
     refresh_cache: bool = False,
@@ -31,15 +38,19 @@ async def get_assets(
 ) -> dict:
     """Get account assets including cash, market value, buying power.
 
+    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
+    password. SIMULATE accounts do not require unlocking.
+
     Args:
-        trd_env: Trading environment, 'REAL' or 'SIMULATE'.
+        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
+            'REAL' (requires unlock_trade first).
         acc_id: Account ID. If 0, uses acc_index.
         acc_index: Account index (default first account).
         refresh_cache: Whether to refresh the cache.
         currency: Filter by currency.
 
     Returns:
-        Dictionary with asset information.
+        Dictionary with asset information including cash, market_val, total_assets, etc.
     """
     trade_service = ctx.request_context.lifespan_context.trade_service
     assets = trade_service.get_assets(
@@ -49,7 +60,7 @@ async def get_assets(
         refresh_cache=refresh_cache,
         currency=currency,
     )
-    await ctx.info(f"Retrieved assets for account")
+    await ctx.info(f"Retrieved assets for {trd_env} account")
     return assets
 
 
@@ -59,24 +70,28 @@ async def get_positions(
     code: str = "",
     pl_ratio_min: float | None = None,
     pl_ratio_max: float | None = None,
-    trd_env: str = "REAL",
+    trd_env: str = "SIMULATE",
     acc_id: int = 0,
     acc_index: int = 0,
     refresh_cache: bool = False,
 ) -> list[dict]:
     """Get current positions in the trading account.
 
+    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
+    password. SIMULATE accounts do not require unlocking.
+
     Args:
-        code: Filter by stock code.
+        code: Filter by stock code (e.g., 'US.AAPL').
         pl_ratio_min: Minimum profit/loss ratio filter.
         pl_ratio_max: Maximum profit/loss ratio filter.
-        trd_env: Trading environment.
+        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
+            'REAL' (requires unlock_trade first).
         acc_id: Account ID.
         acc_index: Account index.
         refresh_cache: Whether to refresh cache.
 
     Returns:
-        List of position dictionaries.
+        List of position dictionaries with code, qty, cost_price, market_val, pl_ratio, etc.
     """
     trade_service = ctx.request_context.lifespan_context.trade_service
     positions = trade_service.get_positions(
@@ -88,7 +103,7 @@ async def get_positions(
         acc_index=acc_index,
         refresh_cache=refresh_cache,
     )
-    await ctx.info(f"Retrieved {len(positions)} positions")
+    await ctx.info(f"Retrieved {len(positions)} positions from {trd_env} account")
     return positions
 
 
@@ -100,24 +115,28 @@ async def get_max_tradable(
     price: float,
     order_id: str = "",
     adjust_limit: float = 0,
-    trd_env: str = "REAL",
+    trd_env: str = "SIMULATE",
     acc_id: int = 0,
     acc_index: int = 0,
 ) -> dict:
     """Get maximum tradable quantity for a stock.
 
+    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
+    password. SIMULATE accounts do not require unlocking.
+
     Args:
         order_type: Order type (e.g., 'NORMAL', 'LIMIT', 'MARKET').
         code: Stock code (e.g., 'US.AAPL').
-        price: Target price.
+        price: Target price for the order.
         order_id: Optional order ID for modification scenarios.
         adjust_limit: Adjust limit percentage.
-        trd_env: Trading environment.
+        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
+            'REAL' (requires unlock_trade first).
         acc_id: Account ID.
         acc_index: Account index.
 
     Returns:
-        Dictionary with max buy/sell quantities.
+        Dictionary with max_cash_buy, max_cash_and_margin_buy, max_position_sell, etc.
     """
     trade_service = ctx.request_context.lifespan_context.trade_service
     max_qty = trade_service.get_max_tradable(
@@ -130,7 +149,7 @@ async def get_max_tradable(
         acc_id=acc_id,
         acc_index=acc_index,
     )
-    await ctx.info(f"Retrieved max tradable for {code}")
+    await ctx.info(f"Retrieved max tradable for {code} in {trd_env} account")
     return max_qty
 
 
@@ -157,15 +176,19 @@ async def get_margin_ratio(
 async def get_cash_flow(
     ctx: Context[ServerSession, AppContext],
     clearing_date: str = "",
-    trd_env: str = "REAL",
+    trd_env: str = "SIMULATE",
     acc_id: int = 0,
     acc_index: int = 0,
 ) -> list[dict]:
     """Get account cash flow history.
 
+    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
+    password. SIMULATE accounts do not require unlocking.
+
     Args:
         clearing_date: Filter by clearing date (YYYY-MM-DD format).
-        trd_env: Trading environment.
+        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
+            'REAL' (requires unlock_trade first).
         acc_id: Account ID.
         acc_index: Account index.
 
@@ -179,7 +202,7 @@ async def get_cash_flow(
         acc_id=acc_id,
         acc_index=acc_index,
     )
-    await ctx.info(f"Retrieved {len(cash_flows)} cash flow records")
+    await ctx.info(f"Retrieved {len(cash_flows)} cash flow records from {trd_env} account")
     return cash_flows
 
 
@@ -189,18 +212,30 @@ async def unlock_trade(
     password: str | None = None,
     password_md5: str | None = None,
 ) -> dict:
-    """Unlock trade for trading operations.
+    """Unlock trade to access REAL account data.
 
-    Required before executing trades or accessing certain sensitive data.
+    IMPORTANT: You MUST call this tool before accessing REAL account data via other
+    tools (get_assets, get_positions, get_max_tradable, get_cash_flow with trd_env='REAL').
+
+    This is NOT required for SIMULATE accounts - they work without unlocking.
+
+    Workflow for accessing REAL account data:
+    1. First call unlock_trade(password='your_trading_password')
+    2. Then call other tools with trd_env='REAL'
 
     Args:
-        password: Plain text trade password.
+        password: Plain text trade password (the password you set in Moomoo app).
         password_md5: MD5 hash of trade password (alternative to password).
+            Provide either password or password_md5, not both.
 
     Returns:
-        Success status dictionary.
+        Success status dictionary with {'status': 'unlocked'}.
+
+    Note:
+        The unlock state is maintained for the session. You only need to call this
+        once per session to access REAL account data.
     """
     trade_service = ctx.request_context.lifespan_context.trade_service
     trade_service.unlock_trade(password=password, password_md5=password_md5)
-    await ctx.info("Trade unlocked successfully")
-    return {"status": "unlocked"}
+    await ctx.info("Trade unlocked successfully - REAL account data is now accessible")
+    return {"status": "unlocked", "message": "You can now access REAL account data by setting trd_env='REAL' in other tools"}

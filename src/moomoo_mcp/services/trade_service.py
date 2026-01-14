@@ -44,7 +44,7 @@ class TradeService:
 
     def get_assets(
         self,
-        trd_env: str = "REAL",
+        trd_env: str = "SIMULATE",
         acc_id: int = 0,
         acc_index: int = 0,
         refresh_cache: bool = False,
@@ -83,7 +83,7 @@ class TradeService:
         code: str = "",
         pl_ratio_min: float | None = None,
         pl_ratio_max: float | None = None,
-        trd_env: str = "REAL",
+        trd_env: str = "SIMULATE",
         acc_id: int = 0,
         acc_index: int = 0,
         refresh_cache: bool = False,
@@ -126,7 +126,7 @@ class TradeService:
         price: float,
         order_id: str = "",
         adjust_limit: float = 0,
-        trd_env: str = "REAL",
+        trd_env: str = "SIMULATE",
         acc_id: int = 0,
         acc_index: int = 0,
     ) -> dict:
@@ -185,7 +185,7 @@ class TradeService:
     def get_cash_flow(
         self,
         clearing_date: str = "",
-        trd_env: str = "REAL",
+        trd_env: str = "SIMULATE",
         acc_id: int = 0,
         acc_index: int = 0,
     ) -> list[dict]:
