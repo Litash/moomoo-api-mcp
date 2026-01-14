@@ -1,25 +1,43 @@
 """Trade service for managing Moomoo trading context and account operations."""
 
-from moomoo import OpenSecTradeContext, RET_OK
+from moomoo import OpenSecTradeContext, RET_OK, SecurityFirm
 
 
 class TradeService:
     """Service to manage Moomoo Trade API connections and account operations."""
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 11111):
+    def __init__(
+        self,
+        host: str = "127.0.0.1",
+        port: int = 11111,
+        security_firm: str | None = None,
+    ):
         """Initialize TradeService.
 
         Args:
             host: Host address of OpenD gateway.
             port: Port number of OpenD gateway.
+            security_firm: Securities firm identifier (e.g., 'FUTUSG' for Singapore,
+                'FUTUSECURITIES' for HK). If None, no filter is applied.
         """
         self.host = host
         self.port = port
+        self.security_firm = security_firm
         self.trade_ctx: OpenSecTradeContext | None = None
 
     def connect(self) -> None:
         """Initialize connection to OpenD trade context."""
-        self.trade_ctx = OpenSecTradeContext(host=self.host, port=self.port)
+        # Build kwargs for OpenSecTradeContext
+        kwargs = {"host": self.host, "port": self.port}
+
+        # Add security_firm if specified
+        if self.security_firm:
+            # Convert string to SecurityFirm enum
+            firm_enum = getattr(SecurityFirm, self.security_firm, None)
+            if firm_enum:
+                kwargs["security_firm"] = firm_enum
+
+        self.trade_ctx = OpenSecTradeContext(**kwargs)
 
     def close(self) -> None:
         """Close trade context connection."""

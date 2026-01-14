@@ -44,6 +44,20 @@ Start the MCP server:
 uv run moomoo-mcp
 ```
 
+### Environment Variables
+
+To enable **REAL account** access, set your trading password via environment variable:
+
+| Variable                    | Description                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| `MOOMOO_TRADE_PASSWORD`     | Your Moomoo trading password (plain text)                                                   |
+| `MOOMOO_TRADE_PASSWORD_MD5` | MD5 hash of your trading password (alternative)                                             |
+| `MOOMOO_SECURITY_FIRM`      | Securities firm: `FUTUSG` (Singapore), `FUTUSECURITIES` (HK), `FUTUINC` (US), `FUTUAU` (AU) |
+
+> **Note**: If both password vars are set, `MOOMOO_TRADE_PASSWORD` takes precedence.
+
+Without these variables, the server runs in **SIMULATE-only mode** (paper trading).
+
 ### Configure Claude Desktop
 
 Add the server to your `claude_desktop_config.json`:
@@ -58,11 +72,17 @@ Add the server to your `claude_desktop_config.json`:
         "C:\\path\\to\\moomoo-api-mcp",
         "run",
         "moomoo-mcp"
-      ]
+      ],
+      "env": {
+        "MOOMOO_TRADE_PASSWORD": "your_trading_password",
+        "MOOMOO_SECURITY_FIRM": "FUTUSG"
+      }
     }
   }
 }
 ```
+
+> **Security**: Never commit your password to git. The `env` block in the config file is local-only.
 
 ## Disclaimer
 
