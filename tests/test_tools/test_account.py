@@ -181,3 +181,19 @@ async def test_unlock_trade(mcp_context, mock_trade_service):
         password="testpass",
         password_md5=None
     )
+
+
+@pytest.mark.asyncio
+async def test_unlock_trade_env_vars(mcp_context, mock_trade_service):
+    """Test unlock_trade tool with env vars."""
+    import os
+    from unittest.mock import patch
+
+    with patch.dict(os.environ, {"MOOMOO_TRADE_PASSWORD": "env_password"}):
+        result = await unlock_trade(mcp_context)
+
+    assert result["status"] == "unlocked"
+    mock_trade_service.unlock_trade.assert_called_once_with(
+        password="env_password",
+        password_md5=None
+    )

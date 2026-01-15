@@ -244,6 +244,7 @@ async def get_cash_flow(
     return cash_flows
 
 
+
 @mcp.tool()
 async def unlock_trade(
     ctx: Context[ServerSession, AppContext],
@@ -258,12 +259,18 @@ async def unlock_trade(
     This is NOT required for SIMULATE accounts - they work without unlocking.
 
     Workflow for accessing REAL account data:
-    1. First call unlock_trade(password='your_trading_password')
-    2. Then call other tools with trd_env='REAL'
+    1. First call unlock_trade(). It will try to use environment variables first.
+       - Checks MOOMOO_TRADE_PASSWORD (plain text)
+       - Checks MOOMOO_TRADE_PASSWORD_MD5 (md5 hash)
+    2. If that fails or if you want to provide credentials explicitly, call
+       unlock_trade(password='your_trading_password').
+    3. Then call other tools with trd_env='REAL'.
 
     Args:
         password: Plain text trade password (the password you set in Moomoo app).
+            If not provided, will look for MOOMOO_TRADE_PASSWORD env var.
         password_md5: MD5 hash of trade password (alternative to password).
+            If not provided, will look for MOOMOO_TRADE_PASSWORD_MD5 env var.
             Provide either password or password_md5, not both.
 
     Returns:
@@ -273,6 +280,13 @@ async def unlock_trade(
         The unlock state is maintained for the session. You only need to call this
         once per session to access REAL account data.
     """
+    import os
+
+    # If no args provided, try env vars
+    if not password and not password_md5:
+        password = os.environ.get("MOOMOO_TRADE_PASSWORD")
+        password_md5 = os.environ.get("MOOMOO_TRADE_PASSWORD_MD5")
+
     trade_service = ctx.request_context.lifespan_context.trade_service
     trade_service.unlock_trade(password=password, password_md5=password_md5)
     await ctx.info("Trade unlocked successfully - REAL account data is now accessible")
