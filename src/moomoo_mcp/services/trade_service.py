@@ -64,7 +64,6 @@ class TradeService:
         self,
         trd_env: str = "SIMULATE",
         acc_id: int = 0,
-        acc_index: int = 0,
         refresh_cache: bool = False,
         currency: str = "",
     ) -> dict:
@@ -72,8 +71,7 @@ class TradeService:
 
         Args:
             trd_env: Trading environment, 'REAL' or 'SIMULATE'.
-            acc_id: Account ID. If 0, uses acc_index.
-            acc_index: Account index (default first account).
+            acc_id: Account ID. Must be obtained from get_accounts().
             refresh_cache: Whether to refresh the cache.
             currency: Filter by currency.
 
@@ -86,7 +84,6 @@ class TradeService:
         ret, data = self.trade_ctx.accinfo_query(
             trd_env=trd_env,
             acc_id=acc_id,
-            acc_index=acc_index,
             refresh_cache=refresh_cache,
             currency=currency,
         )
@@ -103,7 +100,6 @@ class TradeService:
         pl_ratio_max: float | None = None,
         trd_env: str = "SIMULATE",
         acc_id: int = 0,
-        acc_index: int = 0,
         refresh_cache: bool = False,
     ) -> list[dict]:
         """Get current positions.
@@ -113,8 +109,7 @@ class TradeService:
             pl_ratio_min: Minimum profit/loss ratio filter.
             pl_ratio_max: Maximum profit/loss ratio filter.
             trd_env: Trading environment.
-            acc_id: Account ID.
-            acc_index: Account index.
+            acc_id: Account ID. Must be obtained from get_accounts().
             refresh_cache: Whether to refresh cache.
 
         Returns:
@@ -129,7 +124,6 @@ class TradeService:
             pl_ratio_max=pl_ratio_max,
             trd_env=trd_env,
             acc_id=acc_id,
-            acc_index=acc_index,
             refresh_cache=refresh_cache,
         )
         if ret != RET_OK:
@@ -146,7 +140,6 @@ class TradeService:
         adjust_limit: float = 0,
         trd_env: str = "SIMULATE",
         acc_id: int = 0,
-        acc_index: int = 0,
     ) -> dict:
         """Get maximum tradable quantity for a stock.
 
@@ -157,8 +150,7 @@ class TradeService:
             order_id: Optional order ID for modification.
             adjust_limit: Adjust limit percentage.
             trd_env: Trading environment.
-            acc_id: Account ID.
-            acc_index: Account index.
+            acc_id: Account ID. Must be obtained from get_accounts().
 
         Returns:
             Dictionary with max quantities for buy/sell.
@@ -174,7 +166,6 @@ class TradeService:
             adjust_limit=adjust_limit,
             trd_env=trd_env,
             acc_id=acc_id,
-            acc_index=acc_index,
         )
         if ret != RET_OK:
             raise RuntimeError(f"acctradinginfo_query failed: {data}")
@@ -205,15 +196,13 @@ class TradeService:
         clearing_date: str = "",
         trd_env: str = "SIMULATE",
         acc_id: int = 0,
-        acc_index: int = 0,
     ) -> list[dict]:
         """Get account cash flow history.
 
         Args:
             clearing_date: Filter by clearing date (YYYY-MM-DD).
             trd_env: Trading environment.
-            acc_id: Account ID.
-            acc_index: Account index.
+            acc_id: Account ID. Must be obtained from get_accounts().
 
         Returns:
             List of cash flow record dictionaries.
@@ -225,7 +214,6 @@ class TradeService:
             clearing_date=clearing_date,
             trd_env=trd_env,
             acc_id=acc_id,
-            acc_index=acc_index,
         )
         if ret != RET_OK:
             raise RuntimeError(f"get_acc_cash_flow failed: {data}")

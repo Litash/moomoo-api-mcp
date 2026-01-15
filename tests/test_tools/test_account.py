@@ -9,6 +9,7 @@ from moomoo_mcp.services.base_service import MoomooService
 from moomoo_mcp.services.trade_service import TradeService
 from moomoo_mcp.tools.account import (
     get_accounts,
+    get_account_summary,
     get_assets,
     get_positions,
     get_max_tradable,
@@ -84,10 +85,25 @@ async def test_get_assets(mcp_context, mock_trade_service):
     mock_trade_service.get_assets.assert_called_once_with(
         trd_env="SIMULATE",
         acc_id=0,
-        acc_index=0,
         refresh_cache=False,
         currency=""
     )
+
+
+@pytest.mark.asyncio
+async def test_get_account_summary(mcp_context, mock_trade_service):
+    """Test get_account_summary tool."""
+    mock_trade_service.get_assets.return_value = {"cash": 10000.0, "market_val": 5000.0}
+    mock_trade_service.get_positions.return_value = [{"code": "US.AAPL", "qty": 100}]
+
+    result = await get_account_summary(mcp_context, trd_env="SIMULATE", acc_id=123)
+
+    assert "assets" in result
+    assert "positions" in result
+    assert result["assets"]["cash"] == 10000.0
+    assert len(result["positions"]) == 1
+    mock_trade_service.get_assets.assert_called_once_with(trd_env="SIMULATE", acc_id=123)
+    mock_trade_service.get_positions.assert_called_once_with(trd_env="SIMULATE", acc_id=123)
 
 
 @pytest.mark.asyncio

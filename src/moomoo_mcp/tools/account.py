@@ -28,11 +28,45 @@ async def get_accounts(
 
 
 @mcp.tool()
+async def get_account_summary(
+    ctx: Context[ServerSession, AppContext],
+    trd_env: str = "SIMULATE",
+    acc_id: int = 0,
+) -> dict:
+    """Get complete account summary including assets and positions in one call.
+
+    This is the recommended tool for getting a full view of an account's status.
+    It combines get_assets and get_positions into a single response.
+
+    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
+    password. SIMULATE accounts do not require unlocking.
+
+    Args:
+        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
+            'REAL' (requires unlock_trade first).
+        acc_id: Account ID. Must be obtained from get_accounts().
+
+    Returns:
+        Dictionary with 'assets' (cash, market_val, etc.) and 'positions' (list of holdings).
+    """
+    trade_service = ctx.request_context.lifespan_context.trade_service
+
+    assets = trade_service.get_assets(trd_env=trd_env, acc_id=acc_id)
+    positions = trade_service.get_positions(trd_env=trd_env, acc_id=acc_id)
+
+    await ctx.info(f"Retrieved summary for {trd_env} account: {len(positions)} positions")
+
+    return {
+        "assets": assets,
+        "positions": positions,
+    }
+
+
+@mcp.tool()
 async def get_assets(
     ctx: Context[ServerSession, AppContext],
     trd_env: str = "SIMULATE",
     acc_id: int = 0,
-    acc_index: int = 0,
     refresh_cache: bool = False,
     currency: str = "",
 ) -> dict:
@@ -44,8 +78,7 @@ async def get_assets(
     Args:
         trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
             'REAL' (requires unlock_trade first).
-        acc_id: Account ID. If 0, uses acc_index.
-        acc_index: Account index (default first account).
+        acc_id: Account ID. Must be obtained from get_accounts().
         refresh_cache: Whether to refresh the cache.
         currency: Filter by currency.
 
@@ -56,7 +89,6 @@ async def get_assets(
     assets = trade_service.get_assets(
         trd_env=trd_env,
         acc_id=acc_id,
-        acc_index=acc_index,
         refresh_cache=refresh_cache,
         currency=currency,
     )
@@ -72,7 +104,6 @@ async def get_positions(
     pl_ratio_max: float | None = None,
     trd_env: str = "SIMULATE",
     acc_id: int = 0,
-    acc_index: int = 0,
     refresh_cache: bool = False,
 ) -> list[dict]:
     """Get current positions in the trading account.
@@ -86,8 +117,7 @@ async def get_positions(
         pl_ratio_max: Maximum profit/loss ratio filter.
         trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
             'REAL' (requires unlock_trade first).
-        acc_id: Account ID.
-        acc_index: Account index.
+        acc_id: Account ID. Must be obtained from get_accounts().
         refresh_cache: Whether to refresh cache.
 
     Returns:
@@ -100,7 +130,6 @@ async def get_positions(
         pl_ratio_max=pl_ratio_max,
         trd_env=trd_env,
         acc_id=acc_id,
-        acc_index=acc_index,
         refresh_cache=refresh_cache,
     )
     await ctx.info(f"Retrieved {len(positions)} positions from {trd_env} account")
@@ -117,7 +146,6 @@ async def get_max_tradable(
     adjust_limit: float = 0,
     trd_env: str = "SIMULATE",
     acc_id: int = 0,
-    acc_index: int = 0,
 ) -> dict:
     """Get maximum tradable quantity for a stock.
 
@@ -132,8 +160,7 @@ async def get_max_tradable(
         adjust_limit: Adjust limit percentage.
         trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
             'REAL' (requires unlock_trade first).
-        acc_id: Account ID.
-        acc_index: Account index.
+        acc_id: Account ID. Must be obtained from get_accounts().
 
     Returns:
         Dictionary with max_cash_buy, max_cash_and_margin_buy, max_position_sell, etc.
@@ -147,7 +174,6 @@ async def get_max_tradable(
         adjust_limit=adjust_limit,
         trd_env=trd_env,
         acc_id=acc_id,
-        acc_index=acc_index,
     )
     await ctx.info(f"Retrieved max tradable for {code} in {trd_env} account")
     return max_qty
@@ -178,7 +204,6 @@ async def get_cash_flow(
     clearing_date: str = "",
     trd_env: str = "SIMULATE",
     acc_id: int = 0,
-    acc_index: int = 0,
 ) -> list[dict]:
     """Get account cash flow history.
 
@@ -189,8 +214,7 @@ async def get_cash_flow(
         clearing_date: Filter by clearing date (YYYY-MM-DD format).
         trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
             'REAL' (requires unlock_trade first).
-        acc_id: Account ID.
-        acc_index: Account index.
+        acc_id: Account ID. Must be obtained from get_accounts().
 
     Returns:
         List of cash flow record dictionaries.
@@ -200,7 +224,6 @@ async def get_cash_flow(
         clearing_date=clearing_date,
         trd_env=trd_env,
         acc_id=acc_id,
-        acc_index=acc_index,
     )
     await ctx.info(f"Retrieved {len(cash_flows)} cash flow records from {trd_env} account")
     return cash_flows
