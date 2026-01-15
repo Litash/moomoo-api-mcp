@@ -1,0 +1,6 @@
+- [x] Initialize `OpenQuoteContext` in a new `MarketDataService` <!-- id: 0 -->
+- [x] Implement `get_realtime_quotes` tool <!-- id: 1 -->
+- [x] Implement `get_historical_klines` tool <!-- id: 2 -->
+- [x] Implement `get_market_snapshot` tool <!-- id: 3 -->
+- [x] Implement `get_order_book` tool <!-- id: 4 -->
+- [x] Verify tools with `moomoo-api` mock or actual connection <!-- id: 5 -->

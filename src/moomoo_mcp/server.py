@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from mcp.server.fastmcp import FastMCP
 from moomoo_mcp.services.base_service import MoomooService
+from moomoo_mcp.services.market_data_service import MarketDataService
 from moomoo_mcp.services.trade_service import TradeService
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ class AppContext:
     """Application context with typed dependencies."""
     moomoo_service: MoomooService
     trade_service: TradeService
+    market_data_service: MarketDataService
 
 
 def _auto_unlock_trade(trade_service: TradeService) -> None:
@@ -70,8 +72,15 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     # Auto-unlock trade if password is configured in environment
     _auto_unlock_trade(trade_service)
 
+    # Create market data service using the shared quote context
+    market_data_service = MarketDataService(quote_ctx=moomoo_service.quote_ctx)
+
     try:
-        yield AppContext(moomoo_service=moomoo_service, trade_service=trade_service)
+        yield AppContext(
+            moomoo_service=moomoo_service,
+            trade_service=trade_service,
+            market_data_service=market_data_service,
+        )
     finally:
         trade_service.close()
         moomoo_service.close()
@@ -85,6 +94,7 @@ mcp = FastMCP(
 # Import tools to register them
 import moomoo_mcp.tools.system
 import moomoo_mcp.tools.account
+import moomoo_mcp.tools.market_data
 
 def main():
     """Entry point for the MCP server."""

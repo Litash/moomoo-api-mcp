@@ -7,6 +7,7 @@ from mcp.server.fastmcp import Context
 from moomoo_mcp.server import AppContext
 from moomoo_mcp.services.base_service import MoomooService
 from moomoo_mcp.services.trade_service import TradeService
+from moomoo_mcp.services.market_data_service import MarketDataService
 from moomoo_mcp.tools.account import (
     get_accounts,
     get_account_summary,
@@ -32,11 +33,18 @@ def mock_moomoo_service():
 
 
 @pytest.fixture
-def app_context(mock_moomoo_service, mock_trade_service):
+def mock_market_data_service():
+    """Create a mock MarketDataService."""
+    return MagicMock(spec=MarketDataService)
+
+
+@pytest.fixture
+def app_context(mock_moomoo_service, mock_trade_service, mock_market_data_service):
     """Create AppContext with mock services."""
     return AppContext(
         moomoo_service=mock_moomoo_service,
-        trade_service=mock_trade_service
+        trade_service=mock_trade_service,
+        market_data_service=mock_market_data_service,
     )
 
 
