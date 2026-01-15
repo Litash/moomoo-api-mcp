@@ -30,7 +30,7 @@ async def get_accounts(
 @mcp.tool()
 async def get_account_summary(
     ctx: Context[ServerSession, AppContext],
-    trd_env: str = "SIMULATE",
+    trd_env: str = "REAL",
     acc_id: int = 0,
 ) -> dict:
     """Get complete account summary including assets and positions in one call.
@@ -38,12 +38,15 @@ async def get_account_summary(
     This is the recommended tool for getting a full view of an account's status.
     It combines get_assets and get_positions into a single response.
 
-    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
-    password. SIMULATE accounts do not require unlocking.
+    IMPORTANT FOR AI AGENTS:
+    - Default is REAL account. You MUST notify the user clearly that you are
+      accessing their REAL trading account before proceeding.
+    - For REAL accounts, you must call unlock_trade first with the trading password.
+    - If user wants SIMULATE account, they must explicitly request it.
 
     Args:
-        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
-            'REAL' (requires unlock_trade first).
+        trd_env: Trading environment. 'REAL' (default, requires unlock_trade first)
+            or 'SIMULATE' (no unlock needed, for testing).
         acc_id: Account ID. Must be obtained from get_accounts().
 
     Returns:
@@ -65,19 +68,22 @@ async def get_account_summary(
 @mcp.tool()
 async def get_assets(
     ctx: Context[ServerSession, AppContext],
-    trd_env: str = "SIMULATE",
+    trd_env: str = "REAL",
     acc_id: int = 0,
     refresh_cache: bool = False,
     currency: str = "",
 ) -> dict:
     """Get account assets including cash, market value, buying power.
 
-    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
-    password. SIMULATE accounts do not require unlocking.
+    IMPORTANT FOR AI AGENTS:
+    - Default is REAL account. You MUST notify the user clearly that you are
+      accessing their REAL trading account before proceeding.
+    - For REAL accounts, you must call unlock_trade first with the trading password.
+    - If user wants SIMULATE account, they must explicitly request it.
 
     Args:
-        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
-            'REAL' (requires unlock_trade first).
+        trd_env: Trading environment. 'REAL' (default, requires unlock_trade first)
+            or 'SIMULATE' (no unlock needed, for testing).
         acc_id: Account ID. Must be obtained from get_accounts().
         refresh_cache: Whether to refresh the cache.
         currency: Filter by currency.
@@ -102,21 +108,24 @@ async def get_positions(
     code: str = "",
     pl_ratio_min: float | None = None,
     pl_ratio_max: float | None = None,
-    trd_env: str = "SIMULATE",
+    trd_env: str = "REAL",
     acc_id: int = 0,
     refresh_cache: bool = False,
 ) -> list[dict]:
     """Get current positions in the trading account.
 
-    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
-    password. SIMULATE accounts do not require unlocking.
+    IMPORTANT FOR AI AGENTS:
+    - Default is REAL account. You MUST notify the user clearly that you are
+      accessing their REAL trading account before proceeding.
+    - For REAL accounts, you must call unlock_trade first with the trading password.
+    - If user wants SIMULATE account, they must explicitly request it.
 
     Args:
         code: Filter by stock code (e.g., 'US.AAPL').
         pl_ratio_min: Minimum profit/loss ratio filter.
         pl_ratio_max: Maximum profit/loss ratio filter.
-        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
-            'REAL' (requires unlock_trade first).
+        trd_env: Trading environment. 'REAL' (default, requires unlock_trade first)
+            or 'SIMULATE' (no unlock needed, for testing).
         acc_id: Account ID. Must be obtained from get_accounts().
         refresh_cache: Whether to refresh cache.
 
@@ -144,13 +153,16 @@ async def get_max_tradable(
     price: float,
     order_id: str = "",
     adjust_limit: float = 0,
-    trd_env: str = "SIMULATE",
+    trd_env: str = "REAL",
     acc_id: int = 0,
 ) -> dict:
     """Get maximum tradable quantity for a stock.
 
-    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
-    password. SIMULATE accounts do not require unlocking.
+    IMPORTANT FOR AI AGENTS:
+    - Default is REAL account. You MUST notify the user clearly that you are
+      accessing their REAL trading account before proceeding.
+    - For REAL accounts, you must call unlock_trade first with the trading password.
+    - If user wants SIMULATE account, they must explicitly request it.
 
     Args:
         order_type: Order type (e.g., 'NORMAL', 'LIMIT', 'MARKET').
@@ -158,8 +170,8 @@ async def get_max_tradable(
         price: Target price for the order.
         order_id: Optional order ID for modification scenarios.
         adjust_limit: Adjust limit percentage.
-        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
-            'REAL' (requires unlock_trade first).
+        trd_env: Trading environment. 'REAL' (default, requires unlock_trade first)
+            or 'SIMULATE' (no unlock needed, for testing).
         acc_id: Account ID. Must be obtained from get_accounts().
 
     Returns:
@@ -202,18 +214,21 @@ async def get_margin_ratio(
 async def get_cash_flow(
     ctx: Context[ServerSession, AppContext],
     clearing_date: str = "",
-    trd_env: str = "SIMULATE",
+    trd_env: str = "REAL",
     acc_id: int = 0,
 ) -> list[dict]:
     """Get account cash flow history.
 
-    IMPORTANT: For REAL accounts, you must call unlock_trade first with the trading
-    password. SIMULATE accounts do not require unlocking.
+    IMPORTANT FOR AI AGENTS:
+    - Default is REAL account. You MUST notify the user clearly that you are
+      accessing their REAL trading account before proceeding.
+    - For REAL accounts, you must call unlock_trade first with the trading password.
+    - If user wants SIMULATE account, they must explicitly request it.
 
     Args:
         clearing_date: Filter by clearing date (YYYY-MM-DD format).
-        trd_env: Trading environment. Use 'SIMULATE' (default, no unlock needed) or
-            'REAL' (requires unlock_trade first).
+        trd_env: Trading environment. 'REAL' (default, requires unlock_trade first)
+            or 'SIMULATE' (no unlock needed, for testing).
         acc_id: Account ID. Must be obtained from get_accounts().
 
     Returns:

@@ -84,6 +84,38 @@ Add the server to your `claude_desktop_config.json`:
 
 > **Security**: Never commit your password to git. The `env` block in the config file is local-only.
 
+## AI Agent Guidance
+
+> **IMPORTANT**: All account tools default to **REAL** trading accounts.
+
+When using this MCP server, AI agents **MUST**:
+
+1. **Notify the user clearly** before accessing REAL account data. Example:
+
+   > "I'm about to access your **REAL trading account**. This will show your actual portfolio and balances."
+
+2. **Follow the unlock workflow** for REAL accounts:
+   - First call `unlock_trade(password='...')` with the user's trading password
+   - Then call account tools (they default to `trd_env='REAL'`)
+
+3. **Only use SIMULATE accounts when explicitly requested** by the user. To use simulation:
+   - Pass `trd_env='SIMULATE'` parameter explicitly
+   - No unlock is required for simulation accounts
+
+### Workflow Example
+
+```text
+User: "Show me my portfolio"
+
+Agent Response:
+"I'm accessing your REAL trading account to show your portfolio.
+If you prefer to use a simulation account instead, please let me know."
+
+[Proceeds to unlock_trade → get_account_summary]
+```
+
+---
+
 ## Disclaimer
 
 **Unofficial Project**: This software is an independent open-source project and is **not** affiliated with, endorsed by, or sponsored by Moomoo Inc., Futu Holdings Ltd., or their affiliates.
