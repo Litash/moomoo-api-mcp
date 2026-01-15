@@ -95,6 +95,7 @@ mcp = FastMCP(
 import moomoo_mcp.tools.system
 import moomoo_mcp.tools.account
 import moomoo_mcp.tools.market_data
+import moomoo_mcp.tools.trading
 
 def main():
     """Entry point for the MCP server."""

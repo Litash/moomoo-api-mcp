@@ -200,3 +200,266 @@ class TestUnlockTrade:
 
         with pytest.raises(RuntimeError, match="unlock_trade failed"):
             trade_service_with_mock.unlock_trade(password="wrongpass")
+
+
+class TestPlaceOrder:
+    """Tests for place_order."""
+
+    def test_place_order_success(self, trade_service_with_mock, mock_trade_ctx):
+        """Test successful order placement."""
+        df = pd.DataFrame([{
+            "order_id": "123456",
+            "order_status": "SUBMITTED",
+            "code": "US.AAPL",
+            "qty": 100,
+            "price": 150.0,
+        }])
+        mock_trade_ctx.place_order.return_value = (0, df)
+
+        result = trade_service_with_mock.place_order(
+            code="US.AAPL",
+            price=150.0,
+            qty=100,
+            trd_side="BUY",
+            order_type="NORMAL",
+            trd_env="SIMULATE",
+            acc_id=123,
+        )
+
+        assert result["order_id"] == "123456"
+        mock_trade_ctx.place_order.assert_called_once()
+
+    def test_place_order_error(self, trade_service_with_mock, mock_trade_ctx):
+        """Test order placement failure."""
+        mock_trade_ctx.place_order.return_value = (-1, "Order rejected")
+
+        with pytest.raises(RuntimeError, match="place_order failed"):
+            trade_service_with_mock.place_order(
+                code="US.AAPL",
+                price=150.0,
+                qty=100,
+                trd_side="BUY",
+            )
+
+    def test_place_order_no_context(self):
+        """Test error when context not connected."""
+        service = TradeService()
+
+        with pytest.raises(RuntimeError, match="Trade context not connected"):
+            service.place_order(
+                code="US.AAPL",
+                price=150.0,
+                qty=100,
+                trd_side="BUY",
+            )
+
+
+class TestModifyOrder:
+    """Tests for modify_order."""
+
+    def test_modify_order_success(self, trade_service_with_mock, mock_trade_ctx):
+        """Test successful order modification."""
+        df = pd.DataFrame([{
+            "order_id": "123456",
+            "order_status": "MODIFIED",
+        }])
+        mock_trade_ctx.modify_order.return_value = (0, df)
+
+        result = trade_service_with_mock.modify_order(
+            order_id="123456",
+            modify_order_op="NORMAL",
+            qty=200,
+            price=155.0,
+            trd_env="SIMULATE",
+            acc_id=123,
+        )
+
+        assert result["order_status"] == "MODIFIED"
+        mock_trade_ctx.modify_order.assert_called_once()
+
+    def test_modify_order_error(self, trade_service_with_mock, mock_trade_ctx):
+        """Test order modification failure."""
+        mock_trade_ctx.modify_order.return_value = (-1, "Modification failed")
+
+        with pytest.raises(RuntimeError, match="modify_order failed"):
+            trade_service_with_mock.modify_order(
+                order_id="123456",
+                modify_order_op="NORMAL",
+            )
+
+
+class TestCancelOrder:
+    """Tests for cancel_order."""
+
+    def test_cancel_order_success(self, trade_service_with_mock, mock_trade_ctx):
+        """Test successful order cancellation."""
+        df = pd.DataFrame([{
+            "order_id": "123456",
+            "order_status": "CANCELLED",
+        }])
+        mock_trade_ctx.modify_order.return_value = (0, df)
+
+        result = trade_service_with_mock.cancel_order(
+            order_id="123456",
+            trd_env="SIMULATE",
+            acc_id=123,
+        )
+
+        assert result["order_status"] == "CANCELLED"
+        # Verify CANCEL operation is passed
+        call_kwargs = mock_trade_ctx.modify_order.call_args.kwargs
+        assert call_kwargs["modify_order_op"] == "CANCEL"
+
+    def test_cancel_order_error(self, trade_service_with_mock, mock_trade_ctx):
+        """Test order cancellation failure."""
+        mock_trade_ctx.modify_order.return_value = (-1, "Cancel failed")
+
+        with pytest.raises(RuntimeError, match="cancel_order failed"):
+            trade_service_with_mock.cancel_order(order_id="123456")
+
+
+class TestGetOrders:
+    """Tests for get_orders."""
+
+    def test_get_orders_success(self, trade_service_with_mock, mock_trade_ctx):
+        """Test successful order list retrieval."""
+        df = pd.DataFrame([
+            {"order_id": "123", "code": "US.AAPL", "qty": 100, "order_status": "SUBMITTED"},
+            {"order_id": "456", "code": "US.TSLA", "qty": 50, "order_status": "FILLED"},
+        ])
+        mock_trade_ctx.order_list_query.return_value = (0, df)
+
+        result = trade_service_with_mock.get_orders(trd_env="SIMULATE", acc_id=123)
+
+        assert len(result) == 2
+        assert result[0]["order_id"] == "123"
+
+    def test_get_orders_with_code_filter(self, trade_service_with_mock, mock_trade_ctx):
+        """Test order list with code filter."""
+        df = pd.DataFrame([{"order_id": "123", "code": "US.AAPL"}])
+        mock_trade_ctx.order_list_query.return_value = (0, df)
+
+        trade_service_with_mock.get_orders(code="US.AAPL")
+
+        call_kwargs = mock_trade_ctx.order_list_query.call_args.kwargs
+        assert call_kwargs["code"] == "US.AAPL"
+
+    def test_get_orders_error(self, trade_service_with_mock, mock_trade_ctx):
+        """Test order list retrieval failure."""
+        mock_trade_ctx.order_list_query.return_value = (-1, "Query failed")
+
+        with pytest.raises(RuntimeError, match="order_list_query failed"):
+            trade_service_with_mock.get_orders()
+
+
+class TestGetDeals:
+    """Tests for get_deals."""
+
+    def test_get_deals_success(self, trade_service_with_mock, mock_trade_ctx):
+        """Test successful deal list retrieval."""
+        df = pd.DataFrame([
+            {"deal_id": "D123", "code": "US.AAPL", "qty": 100, "price": 150.0},
+        ])
+        mock_trade_ctx.deal_list_query.return_value = (0, df)
+
+        result = trade_service_with_mock.get_deals(trd_env="SIMULATE", acc_id=123)
+
+        assert len(result) == 1
+        assert result[0]["deal_id"] == "D123"
+
+    def test_get_deals_with_code_filter(self, trade_service_with_mock, mock_trade_ctx):
+        """Test deal list with code filter."""
+        df = pd.DataFrame([{"deal_id": "D123", "code": "US.AAPL"}])
+        mock_trade_ctx.deal_list_query.return_value = (0, df)
+
+        trade_service_with_mock.get_deals(code="US.AAPL")
+
+        call_kwargs = mock_trade_ctx.deal_list_query.call_args.kwargs
+        assert call_kwargs["code"] == "US.AAPL"
+
+    def test_get_deals_error(self, trade_service_with_mock, mock_trade_ctx):
+        """Test deal list retrieval failure."""
+        mock_trade_ctx.deal_list_query.return_value = (-1, "Query failed")
+
+        with pytest.raises(RuntimeError, match="deal_list_query failed"):
+            trade_service_with_mock.get_deals()
+
+
+class TestGetHistoryOrders:
+    """Tests for get_history_orders."""
+
+    def test_get_history_orders_success(self, trade_service_with_mock, mock_trade_ctx):
+        """Test successful history order retrieval."""
+        df = pd.DataFrame([
+            {"order_id": "H123", "code": "US.AAPL", "order_status": "FILLED"},
+        ])
+        mock_trade_ctx.history_order_list_query.return_value = (0, df)
+
+        result = trade_service_with_mock.get_history_orders(
+            trd_env="SIMULATE",
+            acc_id=123,
+            start="2025-01-01",
+            end="2025-01-15",
+        )
+
+        assert len(result) == 1
+        assert result[0]["order_id"] == "H123"
+
+    def test_get_history_orders_with_filters(self, trade_service_with_mock, mock_trade_ctx):
+        """Test history orders with code and status filters."""
+        df = pd.DataFrame([])
+        mock_trade_ctx.history_order_list_query.return_value = (0, df)
+
+        trade_service_with_mock.get_history_orders(
+            code="US.AAPL",
+            status_filter_list=["FILLED_ALL"],
+        )
+
+        call_kwargs = mock_trade_ctx.history_order_list_query.call_args.kwargs
+        assert call_kwargs["code"] == "US.AAPL"
+        assert call_kwargs["status_filter_list"] == ["FILLED_ALL"]
+
+    def test_get_history_orders_error(self, trade_service_with_mock, mock_trade_ctx):
+        """Test history order retrieval failure."""
+        mock_trade_ctx.history_order_list_query.return_value = (-1, "Query failed")
+
+        with pytest.raises(RuntimeError, match="history_order_list_query failed"):
+            trade_service_with_mock.get_history_orders()
+
+
+class TestGetHistoryDeals:
+    """Tests for get_history_deals."""
+
+    def test_get_history_deals_success(self, trade_service_with_mock, mock_trade_ctx):
+        """Test successful history deal retrieval."""
+        df = pd.DataFrame([
+            {"deal_id": "HD123", "code": "US.AAPL", "qty": 100, "price": 150.0},
+        ])
+        mock_trade_ctx.history_deal_list_query.return_value = (0, df)
+
+        result = trade_service_with_mock.get_history_deals(
+            trd_env="SIMULATE",
+            acc_id=123,
+            start="2025-01-01",
+            end="2025-01-15",
+        )
+
+        assert len(result) == 1
+        assert result[0]["deal_id"] == "HD123"
+
+    def test_get_history_deals_with_code_filter(self, trade_service_with_mock, mock_trade_ctx):
+        """Test history deals with code filter."""
+        df = pd.DataFrame([])
+        mock_trade_ctx.history_deal_list_query.return_value = (0, df)
+
+        trade_service_with_mock.get_history_deals(code="US.AAPL")
+
+        call_kwargs = mock_trade_ctx.history_deal_list_query.call_args.kwargs
+        assert call_kwargs["code"] == "US.AAPL"
+
+    def test_get_history_deals_error(self, trade_service_with_mock, mock_trade_ctx):
+        """Test history deal retrieval failure."""
+        mock_trade_ctx.history_deal_list_query.return_value = (-1, "Query failed")
+
+        with pytest.raises(RuntimeError, match="history_deal_list_query failed"):
+            trade_service_with_mock.get_history_deals()

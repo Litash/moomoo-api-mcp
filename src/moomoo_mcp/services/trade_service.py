@@ -240,3 +240,266 @@ class TradeService:
         )
         if ret != RET_OK:
             raise RuntimeError(f"unlock_trade failed: {data}")
+
+    def place_order(
+        self,
+        code: str,
+        price: float,
+        qty: int,
+        trd_side: str,
+        order_type: str = "NORMAL",
+        adjust_limit: float = 0,
+        trd_env: str = "SIMULATE",
+        acc_id: int = 0,
+        remark: str = "",
+    ) -> dict:
+        """Place a new trading order.
+
+        Args:
+            code: Stock code (e.g., 'US.AAPL').
+            price: Order price.
+            qty: Order quantity.
+            trd_side: Trade side ('BUY' or 'SELL').
+            order_type: Order type ('NORMAL', 'MARKET', etc.).
+            adjust_limit: Adjust limit percentage.
+            trd_env: Trading environment ('REAL' or 'SIMULATE').
+            acc_id: Account ID. Must be obtained from get_accounts().
+            remark: Order remark/note.
+
+        Returns:
+            Dictionary with order details including order_id.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.place_order(
+            price=price,
+            qty=qty,
+            code=code,
+            trd_side=trd_side,
+            order_type=order_type,
+            adjust_limit=adjust_limit,
+            trd_env=trd_env,
+            acc_id=acc_id,
+            remark=remark,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"place_order failed: {data}")
+
+        records = data.to_dict("records")
+        return records[0] if records else {}
+
+    def modify_order(
+        self,
+        order_id: str,
+        modify_order_op: str,
+        qty: int | None = None,
+        price: float | None = None,
+        adjust_limit: float = 0,
+        trd_env: str = "SIMULATE",
+        acc_id: int = 0,
+    ) -> dict:
+        """Modify an existing order.
+
+        Args:
+            order_id: Order ID to modify.
+            modify_order_op: Modification operation ('NORMAL', 'CANCEL', 'DISABLE', 'ENABLE', 'DELETE').
+            qty: New quantity (optional).
+            price: New price (optional).
+            adjust_limit: Adjust limit percentage.
+            trd_env: Trading environment.
+            acc_id: Account ID.
+
+        Returns:
+            Dictionary with modified order details.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.modify_order(
+            modify_order_op=modify_order_op,
+            order_id=order_id,
+            qty=qty,
+            price=price,
+            adjust_limit=adjust_limit,
+            trd_env=trd_env,
+            acc_id=acc_id,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"modify_order failed: {data}")
+
+        records = data.to_dict("records")
+        return records[0] if records else {}
+
+    def cancel_order(
+        self,
+        order_id: str,
+        trd_env: str = "SIMULATE",
+        acc_id: int = 0,
+    ) -> dict:
+        """Cancel an existing order.
+
+        Convenience wrapper around modify_order with CANCEL operation.
+
+        Args:
+            order_id: Order ID to cancel.
+            trd_env: Trading environment.
+            acc_id: Account ID.
+
+        Returns:
+            Dictionary with cancelled order details.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.modify_order(
+            modify_order_op="CANCEL",
+            order_id=order_id,
+            trd_env=trd_env,
+            acc_id=acc_id,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"cancel_order failed: {data}")
+
+        records = data.to_dict("records")
+        return records[0] if records else {}
+
+    def get_orders(
+        self,
+        code: str = "",
+        status_filter_list: list[str] | None = None,
+        trd_env: str = "SIMULATE",
+        acc_id: int = 0,
+        refresh_cache: bool = False,
+    ) -> list[dict]:
+        """Get list of today's orders.
+
+        Args:
+            code: Filter by stock code.
+            status_filter_list: Filter by order statuses.
+            trd_env: Trading environment.
+            acc_id: Account ID.
+            refresh_cache: Whether to refresh cache.
+
+        Returns:
+            List of order dictionaries.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.order_list_query(
+            code=code,
+            status_filter_list=status_filter_list,
+            trd_env=trd_env,
+            acc_id=acc_id,
+            refresh_cache=refresh_cache,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"order_list_query failed: {data}")
+
+        return data.to_dict("records")
+
+    def get_deals(
+        self,
+        code: str = "",
+        trd_env: str = "SIMULATE",
+        acc_id: int = 0,
+        refresh_cache: bool = False,
+    ) -> list[dict]:
+        """Get list of today's deals (executed trades).
+
+        Args:
+            code: Filter by stock code.
+            trd_env: Trading environment.
+            acc_id: Account ID.
+            refresh_cache: Whether to refresh cache.
+
+        Returns:
+            List of deal dictionaries.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.deal_list_query(
+            code=code,
+            trd_env=trd_env,
+            acc_id=acc_id,
+            refresh_cache=refresh_cache,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"deal_list_query failed: {data}")
+
+        return data.to_dict("records")
+
+    def get_history_orders(
+        self,
+        code: str = "",
+        status_filter_list: list[str] | None = None,
+        start: str = "",
+        end: str = "",
+        trd_env: str = "SIMULATE",
+        acc_id: int = 0,
+    ) -> list[dict]:
+        """Get historical orders.
+
+        Args:
+            code: Filter by stock code.
+            status_filter_list: Filter by order statuses.
+            start: Start date (YYYY-MM-DD).
+            end: End date (YYYY-MM-DD).
+            trd_env: Trading environment.
+            acc_id: Account ID.
+
+        Returns:
+            List of historical order dictionaries.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.history_order_list_query(
+            code=code,
+            status_filter_list=status_filter_list,
+            start=start,
+            end=end,
+            trd_env=trd_env,
+            acc_id=acc_id,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"history_order_list_query failed: {data}")
+
+        return data.to_dict("records")
+
+    def get_history_deals(
+        self,
+        code: str = "",
+        start: str = "",
+        end: str = "",
+        trd_env: str = "SIMULATE",
+        acc_id: int = 0,
+    ) -> list[dict]:
+        """Get historical deals (executed trades).
+
+        Args:
+            code: Filter by stock code.
+            start: Start date (YYYY-MM-DD).
+            end: End date (YYYY-MM-DD).
+            trd_env: Trading environment.
+            acc_id: Account ID.
+
+        Returns:
+            List of historical deal dictionaries.
+        """
+        if not self.trade_ctx:
+            raise RuntimeError("Trade context not connected")
+
+        ret, data = self.trade_ctx.history_deal_list_query(
+            code=code,
+            start=start,
+            end=end,
+            trd_env=trd_env,
+            acc_id=acc_id,
+        )
+        if ret != RET_OK:
+            raise RuntimeError(f"history_deal_list_query failed: {data}")
+
+        return data.to_dict("records")
