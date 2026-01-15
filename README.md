@@ -58,6 +58,23 @@ To enable **REAL account** access, set your trading password via environment var
 
 Without these variables, the server runs in **SIMULATE-only mode** (paper trading).
 
+### Generating MD5 Password Hash
+
+If you prefer not to store your plain text password in environment variables, you can generate an MD5 hash using PowerShell:
+
+1. Open PowerShell
+2. Run the following command (replace `your_trading_password` with your actual password):
+
+   ```powershell
+   $password = "your_trading_password"
+   $md5 = [System.Security.Cryptography.HashAlgorithm]::Create("MD5")
+   $utf8 = [System.Text.Encoding]::UTF8
+   $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($password))).Replace("-", "").ToLower()
+   Write-Host "MD5 Hash: $hash"
+   ```
+
+3. Copy the output hash and set it as `MOOMOO_TRADE_PASSWORD_MD5`.
+
 ### Configure Claude Desktop
 
 Add the server to your `claude_desktop_config.json`:
