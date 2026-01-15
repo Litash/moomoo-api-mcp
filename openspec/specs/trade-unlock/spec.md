@@ -1,8 +1,11 @@
 # trade-unlock Specification
 
 ## Purpose
+
 TBD - created by archiving change add-auto-unlock-trade. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Auto-unlock Trade at Startup
 
 The MCP server SHALL automatically unlock trade during startup if a trade password is provided via environment variable.
@@ -58,3 +61,30 @@ When both `MOOMOO_TRADE_PASSWORD` and `MOOMOO_TRADE_PASSWORD_MD5` are set, the p
 - **THEN** the server SHALL use `MOOMOO_TRADE_PASSWORD` (plain text)
 - **AND** ignore `MOOMOO_TRADE_PASSWORD_MD5`
 
+### Requirement: unlock_trade Tool Environment Variable Fallback
+
+The `unlock_trade` tool SHALL automatically use environment variables for credentials if no arguments are provided.
+
+#### Scenario: unlock_trade with no arguments and env var set
+
+- **GIVEN** the environment variable `MOOMOO_TRADE_PASSWORD` is set
+- **AND** `unlock_trade` is called with no arguments
+- **WHEN** the tool executes
+- **THEN** the tool SHALL use the value from `MOOMOO_TRADE_PASSWORD`
+- **AND** return a success status
+
+#### Scenario: unlock_trade with no arguments and MD5 env var set
+
+- **GIVEN** the environment variable `MOOMOO_TRADE_PASSWORD_MD5` is set
+- **AND** `MOOMOO_TRADE_PASSWORD` is NOT set
+- **AND** `unlock_trade` is called with no arguments
+- **WHEN** the tool executes
+- **THEN** the tool SHALL use the value from `MOOMOO_TRADE_PASSWORD_MD5`
+- **AND** return a success status
+
+#### Scenario: unlock_trade with explicit arguments overrides env vars
+
+- **GIVEN** both `MOOMOO_TRADE_PASSWORD` env var and explicit `password` argument are provided
+- **WHEN** `unlock_trade` is called with the explicit argument
+- **THEN** the tool SHALL use the explicit argument value
+- **AND** ignore the environment variable
