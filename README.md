@@ -4,8 +4,45 @@ An MCP (Model Context Protocol) server for the Moomoo trading platform. This ser
 
 ## Features
 
-- **System Health**: Check connectivity to OpenD gateway (`check_health`).
-- **Exensible Architecture**: Built on FastMCP for easy extension of trading capabilities.
+- **Market Data**: Real-time quotes, historical K-lines, market snapshots, and order books.
+- **Account Management**: Comprehensive account summaries, assets, positions, and cash flow analysis.
+- **Trading**: Full order management including placing, modifying, and canceling orders.
+- **System Health**: Built-in health checks and connectivity verification.
+- **Extensible Architecture**: Built on FastMCP for easy extension of trading capabilities.
+
+## Tools
+
+### System
+
+- `check_health`: Check connectivity to Moomoo OpenD gateway and server health.
+
+### Account
+
+- `get_accounts`: List all trading accounts (REAL and SIMULATE).
+- `get_account_summary`: Get a complete summary of assets and positions for an account.
+- `get_assets`: Retrieve account assets (cash, market value, buying power).
+- `get_positions`: Get current stock positions with P/L data.
+- `get_max_tradable`: Calculate maximum tradable quantity for a specific stock.
+- `get_margin_ratio`: Check margin ratios for specific stocks.
+- `get_cash_flow`: Retrieve historical cash flow records.
+- `unlock_trade`: Unlock trading access for REAL accounts.
+
+### Market Data
+
+- `get_stock_quote`: Get real-time stock quotes.
+- `get_historical_klines`: Retrieve historical candlestick data (Day, Week, Min, etc.).
+- `get_market_snapshot`: Get efficient market snapshots for multiple stocks.
+- `get_order_book`: View real-time bid/ask order book depth.
+
+### Trading
+
+- `place_order`: Place a new order (Market, Limit, Stop, etc.).
+- `modify_order`: Modify price or quantity of an open order.
+- `cancel_order`: Cancel an open order.
+- `get_orders`: Get list of orders for the current day.
+- `get_deals`: Get list of executed trades (deals) for the current day.
+- `get_history_orders`: Search historical orders.
+- `get_history_deals`: Search historical deals.
 
 ## Installation
 
@@ -112,12 +149,12 @@ When using this MCP server, AI agents **MUST**:
    > "I'm about to access your **REAL trading account**. This will show your actual portfolio and balances."
 
 2. **Follow the unlock workflow** for REAL accounts:
-   - First call `unlock_trade(password='...')` with the user's trading password
-   - Then call account tools (they default to `trd_env='REAL'`)
+   - First call `unlock_trade` (it handles env vars automatically, or pass password if needed).
+   - Then call account/trading tools (they default to `trd_env='REAL'`).
 
 3. **Only use SIMULATE accounts when explicitly requested** by the user. To use simulation:
-   - Pass `trd_env='SIMULATE'` parameter explicitly
-   - No unlock is required for simulation accounts
+   - Pass `trd_env='SIMULATE'` parameter explicitly.
+   - No unlock is required for simulation accounts.
 
 ### Workflow Example
 
@@ -131,7 +168,9 @@ If you prefer to use a simulation account instead, please let me know."
 [Proceeds to unlock_trade → get_account_summary]
 ```
 
----
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Disclaimer
 
