@@ -1,8 +1,11 @@
 # account-info Specification
 
 ## Purpose
+
 TBD - created by archiving change add-account-tools. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Get Account List
 
 The system SHALL provide a tool to retrieve the list of trading accounts available to the user.
@@ -32,6 +35,12 @@ The system SHALL provide a tool to retrieve the current positions held in a trad
 Given the user holds stocks
 When the `get_positions` tool is called
 Then it should return a list of held securities with stock code, quantity, cost price, and current market value
+
+#### Scenario: Get Positions by Market
+
+Given the user holds stocks in multiple markets (e.g. US, HK)
+When the `get_positions` tool is called with a specific `market` (e.g. "US")
+Then it should return only the positions for that market
 
 ### Requirement: Get Max Tradable Quantity
 
@@ -72,4 +81,3 @@ The system SHALL provide a tool to unlock trading permissions using a password o
 Given the user needs to perform a restricted action (e.g. check max tradable or trade)
 When the `unlock_trade` tool is called with the password
 Then the trading context should be unlocked for subsequent operations
-

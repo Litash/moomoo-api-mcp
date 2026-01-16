@@ -1,6 +1,6 @@
 """Trade service for managing Moomoo trading context and account operations."""
 
-from moomoo import OpenSecTradeContext, RET_OK, SecurityFirm
+from moomoo import OpenSecTradeContext, RET_OK, SecurityFirm, TrdMarket
 
 
 class TradeService:
@@ -96,6 +96,7 @@ class TradeService:
     def get_positions(
         self,
         code: str = "",
+        market: str = "",
         pl_ratio_min: float | None = None,
         pl_ratio_max: float | None = None,
         trd_env: str = "SIMULATE",
@@ -106,6 +107,7 @@ class TradeService:
 
         Args:
             code: Filter by stock code.
+            market: Filter by market (e.g., 'US', 'HK', 'CN', 'SG', 'JP').
             pl_ratio_min: Minimum profit/loss ratio filter.
             pl_ratio_max: Maximum profit/loss ratio filter.
             trd_env: Trading environment.
@@ -118,8 +120,30 @@ class TradeService:
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
+        # Map market string to TrdMarket enum
+        market_map = {
+            "US": TrdMarket.US,
+            "HK": TrdMarket.HK,
+            "CN": TrdMarket.CN,
+            "CN_SZ": TrdMarket.CN_SZ,
+            "CN_SH": TrdMarket.CN_SH,
+            "SG": TrdMarket.SG,
+            "JP": TrdMarket.JP,
+        }
+        position_market = TrdMarket.NONE
+        if market:
+            try:
+                # Try direct map first
+                position_market = market_map.get(market.upper())
+                if position_market is None:
+                     # Try to use getattr for other potential values
+                     position_market = getattr(TrdMarket, market.upper())
+            except AttributeError:
+                 position_market = TrdMarket.NONE
+
         ret, data = self.trade_ctx.position_list_query(
             code=code,
+            position_market=position_market,
             pl_ratio_min=pl_ratio_min,
             pl_ratio_max=pl_ratio_max,
             trd_env=trd_env,

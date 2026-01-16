@@ -106,13 +106,14 @@ async def get_assets(
 async def get_positions(
     ctx: Context[ServerSession, AppContext],
     code: str = "",
+    market: str = "",
     pl_ratio_min: float | None = None,
     pl_ratio_max: float | None = None,
     trd_env: str = "REAL",
     acc_id: int = 0,
     refresh_cache: bool = False,
 ) -> list[dict]:
-    """Get current positions in the trading account.
+    """Get current positions.
 
     IMPORTANT FOR AI AGENTS:
     - Default is REAL account. You MUST notify the user clearly that you are
@@ -122,6 +123,7 @@ async def get_positions(
 
     Args:
         code: Filter by stock code (e.g., 'US.AAPL').
+        market: Filter by market (e.g., 'US', 'HK', 'CN', 'SG', 'JP').
         pl_ratio_min: Minimum profit/loss ratio filter.
         pl_ratio_max: Maximum profit/loss ratio filter.
         trd_env: Trading environment. 'REAL' (default, requires unlock_trade first)
@@ -135,6 +137,7 @@ async def get_positions(
     trade_service = ctx.request_context.lifespan_context.trade_service
     positions = trade_service.get_positions(
         code=code,
+        market=market,
         pl_ratio_min=pl_ratio_min,
         pl_ratio_max=pl_ratio_max,
         trd_env=trd_env,
