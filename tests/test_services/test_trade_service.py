@@ -419,6 +419,8 @@ class TestCancelOrder:
         # Verify CANCEL operation is passed
         call_kwargs = mock_trade_ctx.modify_order.call_args.kwargs
         assert call_kwargs["modify_order_op"] == "CANCEL"
+        assert call_kwargs["qty"] == 0
+        assert call_kwargs["price"] == 0
 
     def test_cancel_order_error(self, trade_service_with_mock, mock_trade_ctx):
         """Test order cancellation failure."""

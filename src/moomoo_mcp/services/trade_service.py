@@ -412,6 +412,9 @@ class TradeService:
         ret, data = self.trade_ctx.modify_order(
             modify_order_op="CANCEL",
             order_id=order_id,
+            qty=0,
+            price=0,
+            adjust_limit=0,
             trd_env=trd_env,
             acc_id=acc_id,
         )
