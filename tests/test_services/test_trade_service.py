@@ -98,10 +98,12 @@ class TestGetPositions:
 
     def test_get_positions_success(self, trade_service_with_mock, mock_trade_ctx):
         """Test successful positions retrieval."""
-        df = pd.DataFrame([
-            {"code": "US.AAPL", "qty": 100},
-            {"code": "US.TSLA", "qty": 50},
-        ])
+        df = pd.DataFrame(
+            [
+                {"code": "US.AAPL", "qty": 100},
+                {"code": "US.TSLA", "qty": 50},
+            ]
+        )
         mock_trade_ctx.position_list_query.return_value = (0, df)
 
         result = trade_service_with_mock.get_positions()
@@ -109,7 +111,9 @@ class TestGetPositions:
         assert len(result) == 2
         assert result[0]["code"] == "US.AAPL"
 
-    def test_get_positions_with_code_filter(self, trade_service_with_mock, mock_trade_ctx):
+    def test_get_positions_with_code_filter(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
         """Test positions with code filter."""
         df = pd.DataFrame([{"code": "US.AAPL", "qty": 100}])
         mock_trade_ctx.position_list_query.return_value = (0, df)
@@ -130,9 +134,7 @@ class TestGetMaxTradable:
         mock_trade_ctx.acctradinginfo_query.return_value = (0, df)
 
         result = trade_service_with_mock.get_max_tradable(
-            order_type="NORMAL",
-            code="US.AAPL",
-            price=150.0
+            order_type="NORMAL", code="US.AAPL", price=150.0
         )
 
         assert result["max_cash_buy"] == 100
@@ -177,9 +179,7 @@ class TestUnlockTrade:
         trade_service_with_mock.unlock_trade(password="testpass")
 
         mock_trade_ctx.unlock_trade.assert_called_once_with(
-            password="testpass",
-            password_md5=None,
-            is_unlock=True
+            password="testpass", password_md5=None, is_unlock=True
         )
 
     def test_unlock_trade_with_md5(self, trade_service_with_mock, mock_trade_ctx):
@@ -189,9 +189,7 @@ class TestUnlockTrade:
         trade_service_with_mock.unlock_trade(password_md5="abc123")
 
         mock_trade_ctx.unlock_trade.assert_called_once_with(
-            password=None,
-            password_md5="abc123",
-            is_unlock=True
+            password=None, password_md5="abc123", is_unlock=True
         )
 
     def test_unlock_trade_error(self, trade_service_with_mock, mock_trade_ctx):
@@ -207,13 +205,17 @@ class TestPlaceOrder:
 
     def test_place_order_success(self, trade_service_with_mock, mock_trade_ctx):
         """Test successful order placement."""
-        df = pd.DataFrame([{
-            "order_id": "123456",
-            "order_status": "SUBMITTED",
-            "code": "US.AAPL",
-            "qty": 100,
-            "price": 150.0,
-        }])
+        df = pd.DataFrame(
+            [
+                {
+                    "order_id": "123456",
+                    "order_status": "SUBMITTED",
+                    "code": "US.AAPL",
+                    "qty": 100,
+                    "price": 150.0,
+                }
+            ]
+        )
         mock_trade_ctx.place_order.return_value = (0, df)
 
         result = trade_service_with_mock.place_order(
@@ -253,16 +255,120 @@ class TestPlaceOrder:
                 trd_side="BUY",
             )
 
+    def test_place_order_with_time_in_force_gtc(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
+        """Test order placement with GTC time in force."""
+        df = pd.DataFrame(
+            [
+                {
+                    "order_id": "123456",
+                    "order_status": "SUBMITTED",
+                    "code": "US.AAPL",
+                    "qty": 100,
+                    "price": 150.0,
+                    "time_in_force": "GTC",
+                }
+            ]
+        )
+        mock_trade_ctx.place_order.return_value = (0, df)
+
+        result = trade_service_with_mock.place_order(
+            code="US.AAPL",
+            price=150.0,
+            qty=100,
+            trd_side="BUY",
+            order_type="NORMAL",
+            time_in_force="GTC",
+            trd_env="SIMULATE",
+            acc_id=123,
+        )
+
+        assert result["order_id"] == "123456"
+        mock_trade_ctx.place_order.assert_called_once()
+        call_kwargs = mock_trade_ctx.place_order.call_args.kwargs
+        assert call_kwargs["time_in_force"] == "GTC"
+
+    def test_place_order_with_time_in_force_day(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
+        """Test order placement with DAY time in force (default)."""
+        df = pd.DataFrame(
+            [
+                {
+                    "order_id": "123456",
+                    "order_status": "SUBMITTED",
+                    "code": "US.AAPL",
+                    "qty": 100,
+                    "price": 150.0,
+                    "time_in_force": "DAY",
+                }
+            ]
+        )
+        mock_trade_ctx.place_order.return_value = (0, df)
+
+        result = trade_service_with_mock.place_order(
+            code="US.AAPL",
+            price=150.0,
+            qty=100,
+            trd_side="BUY",
+            order_type="NORMAL",
+            trd_env="SIMULATE",
+            acc_id=123,
+        )
+
+        assert result["order_id"] == "123456"
+        mock_trade_ctx.place_order.assert_called_once()
+        call_kwargs = mock_trade_ctx.place_order.call_args.kwargs
+        # Default should be DAY
+        assert call_kwargs["time_in_force"] == "DAY"
+
+    def test_place_order_with_special_limit_order_type(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
+        """Test order placement with SPECIAL_LIMIT order type."""
+        df = pd.DataFrame(
+            [
+                {
+                    "order_id": "123456",
+                    "order_status": "SUBMITTED",
+                    "code": "HK.00700",
+                    "qty": 100,
+                    "price": 300.0,
+                }
+            ]
+        )
+        mock_trade_ctx.place_order.return_value = (0, df)
+
+        result = trade_service_with_mock.place_order(
+            code="HK.00700",
+            price=300.0,
+            qty=100,
+            trd_side="BUY",
+            order_type="SPECIAL_LIMIT",
+            time_in_force="DAY",
+            trd_env="SIMULATE",
+            acc_id=123,
+        )
+
+        assert result["order_id"] == "123456"
+        call_kwargs = mock_trade_ctx.place_order.call_args.kwargs
+        assert call_kwargs["order_type"] == "SPECIAL_LIMIT"
+
 
 class TestModifyOrder:
     """Tests for modify_order."""
 
     def test_modify_order_success(self, trade_service_with_mock, mock_trade_ctx):
         """Test successful order modification."""
-        df = pd.DataFrame([{
-            "order_id": "123456",
-            "order_status": "MODIFIED",
-        }])
+        df = pd.DataFrame(
+            [
+                {
+                    "order_id": "123456",
+                    "order_status": "MODIFIED",
+                }
+            ]
+        )
         mock_trade_ctx.modify_order.return_value = (0, df)
 
         result = trade_service_with_mock.modify_order(
@@ -293,10 +399,14 @@ class TestCancelOrder:
 
     def test_cancel_order_success(self, trade_service_with_mock, mock_trade_ctx):
         """Test successful order cancellation."""
-        df = pd.DataFrame([{
-            "order_id": "123456",
-            "order_status": "CANCELLED",
-        }])
+        df = pd.DataFrame(
+            [
+                {
+                    "order_id": "123456",
+                    "order_status": "CANCELLED",
+                }
+            ]
+        )
         mock_trade_ctx.modify_order.return_value = (0, df)
 
         result = trade_service_with_mock.cancel_order(
@@ -323,10 +433,22 @@ class TestGetOrders:
 
     def test_get_orders_success(self, trade_service_with_mock, mock_trade_ctx):
         """Test successful order list retrieval."""
-        df = pd.DataFrame([
-            {"order_id": "123", "code": "US.AAPL", "qty": 100, "order_status": "SUBMITTED"},
-            {"order_id": "456", "code": "US.TSLA", "qty": 50, "order_status": "FILLED"},
-        ])
+        df = pd.DataFrame(
+            [
+                {
+                    "order_id": "123",
+                    "code": "US.AAPL",
+                    "qty": 100,
+                    "order_status": "SUBMITTED",
+                },
+                {
+                    "order_id": "456",
+                    "code": "US.TSLA",
+                    "qty": 50,
+                    "order_status": "FILLED",
+                },
+            ]
+        )
         mock_trade_ctx.order_list_query.return_value = (0, df)
 
         result = trade_service_with_mock.get_orders(trd_env="SIMULATE", acc_id=123)
@@ -357,9 +479,11 @@ class TestGetDeals:
 
     def test_get_deals_success(self, trade_service_with_mock, mock_trade_ctx):
         """Test successful deal list retrieval."""
-        df = pd.DataFrame([
-            {"deal_id": "D123", "code": "US.AAPL", "qty": 100, "price": 150.0},
-        ])
+        df = pd.DataFrame(
+            [
+                {"deal_id": "D123", "code": "US.AAPL", "qty": 100, "price": 150.0},
+            ]
+        )
         mock_trade_ctx.deal_list_query.return_value = (0, df)
 
         result = trade_service_with_mock.get_deals(trd_env="SIMULATE", acc_id=123)
@@ -390,9 +514,11 @@ class TestGetHistoryOrders:
 
     def test_get_history_orders_success(self, trade_service_with_mock, mock_trade_ctx):
         """Test successful history order retrieval."""
-        df = pd.DataFrame([
-            {"order_id": "H123", "code": "US.AAPL", "order_status": "FILLED"},
-        ])
+        df = pd.DataFrame(
+            [
+                {"order_id": "H123", "code": "US.AAPL", "order_status": "FILLED"},
+            ]
+        )
         mock_trade_ctx.history_order_list_query.return_value = (0, df)
 
         result = trade_service_with_mock.get_history_orders(
@@ -405,7 +531,9 @@ class TestGetHistoryOrders:
         assert len(result) == 1
         assert result[0]["order_id"] == "H123"
 
-    def test_get_history_orders_with_filters(self, trade_service_with_mock, mock_trade_ctx):
+    def test_get_history_orders_with_filters(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
         """Test history orders with code and status filters."""
         df = pd.DataFrame([])
         mock_trade_ctx.history_order_list_query.return_value = (0, df)
@@ -432,9 +560,11 @@ class TestGetHistoryDeals:
 
     def test_get_history_deals_success(self, trade_service_with_mock, mock_trade_ctx):
         """Test successful history deal retrieval."""
-        df = pd.DataFrame([
-            {"deal_id": "HD123", "code": "US.AAPL", "qty": 100, "price": 150.0},
-        ])
+        df = pd.DataFrame(
+            [
+                {"deal_id": "HD123", "code": "US.AAPL", "qty": 100, "price": 150.0},
+            ]
+        )
         mock_trade_ctx.history_deal_list_query.return_value = (0, df)
 
         result = trade_service_with_mock.get_history_deals(
@@ -447,7 +577,9 @@ class TestGetHistoryDeals:
         assert len(result) == 1
         assert result[0]["deal_id"] == "HD123"
 
-    def test_get_history_deals_with_code_filter(self, trade_service_with_mock, mock_trade_ctx):
+    def test_get_history_deals_with_code_filter(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
         """Test history deals with code filter."""
         df = pd.DataFrame([])
         mock_trade_ctx.history_deal_list_query.return_value = (0, df)

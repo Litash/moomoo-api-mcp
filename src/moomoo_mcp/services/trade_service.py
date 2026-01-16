@@ -136,10 +136,10 @@ class TradeService:
                 # Try direct map first
                 position_market = market_map.get(market.upper())
                 if position_market is None:
-                     # Try to use getattr for other potential values
-                     position_market = getattr(TrdMarket, market.upper())
+                    # Try to use getattr for other potential values
+                    position_market = getattr(TrdMarket, market.upper())
             except AttributeError:
-                 position_market = TrdMarket.NONE
+                position_market = TrdMarket.NONE
 
         ret, data = self.trade_ctx.position_list_query(
             code=code,
@@ -244,7 +244,9 @@ class TradeService:
 
         return data.to_dict("records")
 
-    def unlock_trade(self, password: str | None = None, password_md5: str | None = None) -> None:
+    def unlock_trade(
+        self, password: str | None = None, password_md5: str | None = None
+    ) -> None:
         """Unlock trade for trading operations.
 
         Args:
@@ -272,6 +274,7 @@ class TradeService:
         qty: int,
         trd_side: str,
         order_type: str = "NORMAL",
+        time_in_force: str = "DAY",
         adjust_limit: float = 0,
         aux_price: float | None = None,
         trail_type: str | None = None,
@@ -289,6 +292,7 @@ class TradeService:
             qty: Order quantity.
             trd_side: Trade side ('BUY' or 'SELL').
             order_type: Order type ('NORMAL', 'MARKET', etc.).
+            time_in_force: Time in force ('DAY' or 'GTC'). Defaults to 'DAY'.
             adjust_limit: Adjust limit percentage.
             aux_price: Trigger price for stop/if-touched order types.
             trail_type: Trailing type ('RATIO' or 'AMOUNT') for trailing stop types.
@@ -304,12 +308,21 @@ class TradeService:
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
-        stop_order_types = {"STOP", "STOP_LIMIT", "MARKET_IF_TOUCHED", "LIMIT_IF_TOUCHED"}
+        stop_order_types = {
+            "STOP",
+            "STOP_LIMIT",
+            "MARKET_IF_TOUCHED",
+            "LIMIT_IF_TOUCHED",
+        }
         trailing_order_types = {"TRAILING_STOP", "TRAILING_STOP_LIMIT"}
         if order_type in stop_order_types and aux_price is None:
             raise ValueError("aux_price is required for stop/if-touched order types")
-        if order_type in trailing_order_types and (trail_type is None or trail_value is None):
-            raise ValueError("trail_type and trail_value are required for trailing stop order types")
+        if order_type in trailing_order_types and (
+            trail_type is None or trail_value is None
+        ):
+            raise ValueError(
+                "trail_type and trail_value are required for trailing stop order types"
+            )
 
         ret, data = self.trade_ctx.place_order(
             price=price,
@@ -317,6 +330,7 @@ class TradeService:
             code=code,
             trd_side=trd_side,
             order_type=order_type,
+            time_in_force=time_in_force,
             adjust_limit=adjust_limit,
             aux_price=aux_price,
             trail_type=trail_type,

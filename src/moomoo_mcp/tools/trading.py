@@ -14,6 +14,7 @@ def place_order(
     qty: int,
     trd_side: str,
     order_type: str = "NORMAL",
+    time_in_force: str = "DAY",
     adjust_limit: float = 0,
     aux_price: float | None = None,
     trail_type: str | None = None,
@@ -27,8 +28,8 @@ def place_order(
 
     CRITICAL: You MUST ask the user for explicit confirmation before calling this
     tool, especially if `trd_env` is 'REAL'. Display the full order details to the
-    user for verification including: code, side (BUY/SELL), quantity, price, and
-    order type. Orders placed in REAL environment will use real money.
+    user for verification including: code, side (BUY/SELL), quantity, price, order
+    type, and time in force. Orders placed in REAL environment will use real money.
 
     IMPORTANT FOR AI AGENTS:
     - Default is REAL account as per user preference.
@@ -40,13 +41,28 @@ def place_order(
         price: Order price. For market orders, this is used as price limit.
         qty: Order quantity (number of shares).
         trd_side: Trade side - 'BUY' or 'SELL'.
-        order_type: Order type - 'NORMAL' (limit), 'MARKET', 'ABSOLUTE_LIMIT',
-            'AUCTION', 'AUCTION_LIMIT', 'SPECIAL_LIMIT', 'STOP', 'STOP_LIMIT',
-            'MARKET_IF_TOUCHED', 'LIMIT_IF_TOUCHED', 'TRAILING_STOP',
-            'TRAILING_STOP_LIMIT'.
+        order_type: Order type. Supported values:
+            - 'NORMAL': Enhanced limit order (HK), limit order (US/A-share).
+            - 'MARKET': Market order.
+            - 'ABSOLUTE_LIMIT': Limit order (HK only, exact price match required).
+            - 'AUCTION': Auction order (HK).
+            - 'AUCTION_LIMIT': Auction limit order (HK).
+            - 'SPECIAL_LIMIT': Special limit / Market IOC (HK, partial fill then cancel).
+            - 'SPECIAL_LIMIT_ALL': Special limit all-or-none (HK, fill all or cancel).
+            - 'STOP': Stop market order.
+            - 'STOP_LIMIT': Stop limit order.
+            - 'MARKET_IF_TOUCHED': Market if touched (take profit).
+            - 'LIMIT_IF_TOUCHED': Limit if touched (take profit).
+            - 'TRAILING_STOP': Trailing stop market order.
+            - 'TRAILING_STOP_LIMIT': Trailing stop limit order.
+        time_in_force: Time in force for the order. Default 'DAY'.
+            - 'DAY': Order valid for current trading day only.
+            - 'GTC': Good-Til-Cancelled, order remains active until filled or cancelled.
         adjust_limit: Adjust limit percentage (0-100). Default 0.
-        aux_price: Trigger price for stop/if-touched order types.
-        trail_type: Trailing type ('RATIO' or 'AMOUNT') for trailing stop types.
+        aux_price: Trigger price for stop/if-touched order types (required for STOP,
+            STOP_LIMIT, MARKET_IF_TOUCHED, LIMIT_IF_TOUCHED).
+        trail_type: Trailing type for trailing stop orders (required for TRAILING_STOP,
+            TRAILING_STOP_LIMIT). Values: 'RATIO' or 'AMOUNT'.
         trail_value: Trailing value (ratio or amount) for trailing stop types.
         trail_spread: Optional trailing spread for trailing stop limit types.
         trd_env: Trading environment - 'REAL' or 'SIMULATE'. Default REAL.
@@ -54,7 +70,8 @@ def place_order(
         remark: Optional order note/remark.
 
     Returns:
-        Dictionary with order details including order_id, order_status, etc.
+        Dictionary with order details including order_id, order_status,
+        time_in_force, etc.
     """
     trade_service = ctx.request_context.lifespan_context.trade_service
     return trade_service.place_order(
@@ -63,6 +80,7 @@ def place_order(
         qty=qty,
         trd_side=trd_side,
         order_type=order_type,
+        time_in_force=time_in_force,
         adjust_limit=adjust_limit,
         aux_price=aux_price,
         trail_type=trail_type,
