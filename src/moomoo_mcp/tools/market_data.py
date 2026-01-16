@@ -1,3 +1,4 @@
+
 """Market data tools for retrieving stock quotes, K-lines, snapshots, and order book."""
 
 from mcp.server.fastmcp import Context

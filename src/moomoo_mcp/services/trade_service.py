@@ -249,6 +249,10 @@ class TradeService:
         trd_side: str,
         order_type: str = "NORMAL",
         adjust_limit: float = 0,
+        aux_price: float | None = None,
+        trail_type: str | None = None,
+        trail_value: float | None = None,
+        trail_spread: float | None = None,
         trd_env: str = "SIMULATE",
         acc_id: int = 0,
         remark: str = "",
@@ -262,6 +266,10 @@ class TradeService:
             trd_side: Trade side ('BUY' or 'SELL').
             order_type: Order type ('NORMAL', 'MARKET', etc.).
             adjust_limit: Adjust limit percentage.
+            aux_price: Trigger price for stop/if-touched order types.
+            trail_type: Trailing type ('RATIO' or 'AMOUNT') for trailing stop types.
+            trail_value: Trailing value (ratio or amount) for trailing stop types.
+            trail_spread: Optional trailing spread for trailing stop limit types.
             trd_env: Trading environment ('REAL' or 'SIMULATE').
             acc_id: Account ID. Must be obtained from get_accounts().
             remark: Order remark/note.
@@ -272,6 +280,13 @@ class TradeService:
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
+        stop_order_types = {"STOP", "STOP_LIMIT", "MARKET_IF_TOUCHED", "LIMIT_IF_TOUCHED"}
+        trailing_order_types = {"TRAILING_STOP", "TRAILING_STOP_LIMIT"}
+        if order_type in stop_order_types and aux_price is None:
+            raise ValueError("aux_price is required for stop/if-touched order types")
+        if order_type in trailing_order_types and (trail_type is None or trail_value is None):
+            raise ValueError("trail_type and trail_value are required for trailing stop order types")
+
         ret, data = self.trade_ctx.place_order(
             price=price,
             qty=qty,
@@ -279,6 +294,10 @@ class TradeService:
             trd_side=trd_side,
             order_type=order_type,
             adjust_limit=adjust_limit,
+            aux_price=aux_price,
+            trail_type=trail_type,
+            trail_value=trail_value,
+            trail_spread=trail_spread,
             trd_env=trd_env,
             acc_id=acc_id,
             remark=remark,

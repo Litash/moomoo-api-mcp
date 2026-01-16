@@ -15,6 +15,10 @@ def place_order(
     trd_side: str,
     order_type: str = "NORMAL",
     adjust_limit: float = 0,
+    aux_price: float | None = None,
+    trail_type: str | None = None,
+    trail_value: float | None = None,
+    trail_spread: float | None = None,
     trd_env: str = "REAL",
     acc_id: int = 0,
     remark: str = "",
@@ -37,8 +41,14 @@ def place_order(
         qty: Order quantity (number of shares).
         trd_side: Trade side - 'BUY' or 'SELL'.
         order_type: Order type - 'NORMAL' (limit), 'MARKET', 'ABSOLUTE_LIMIT',
-            'AUCTION', 'AUCTION_LIMIT', 'ODD_LOT_LIMIT', 'SPECIAL_LIMIT'.
+            'AUCTION', 'AUCTION_LIMIT', 'SPECIAL_LIMIT', 'STOP', 'STOP_LIMIT',
+            'MARKET_IF_TOUCHED', 'LIMIT_IF_TOUCHED', 'TRAILING_STOP',
+            'TRAILING_STOP_LIMIT'.
         adjust_limit: Adjust limit percentage (0-100). Default 0.
+        aux_price: Trigger price for stop/if-touched order types.
+        trail_type: Trailing type ('RATIO' or 'AMOUNT') for trailing stop types.
+        trail_value: Trailing value (ratio or amount) for trailing stop types.
+        trail_spread: Optional trailing spread for trailing stop limit types.
         trd_env: Trading environment - 'REAL' or 'SIMULATE'. Default REAL.
         acc_id: Account ID from get_accounts(). Required if multiple accounts exist.
         remark: Optional order note/remark.
@@ -54,6 +64,10 @@ def place_order(
         trd_side=trd_side,
         order_type=order_type,
         adjust_limit=adjust_limit,
+        aux_price=aux_price,
+        trail_type=trail_type,
+        trail_value=trail_value,
+        trail_spread=trail_spread,
         trd_env=trd_env,
         acc_id=acc_id,
         remark=remark,
