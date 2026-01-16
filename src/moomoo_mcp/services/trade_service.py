@@ -121,12 +121,12 @@ class TradeService:
             raise RuntimeError("Trade context not connected")
 
         # Map market string to TrdMarket enum
+        # Note: CN is for A-share simulation only; HKCC for Stock Connect (live only)
         market_map = {
             "US": TrdMarket.US,
             "HK": TrdMarket.HK,
             "CN": TrdMarket.CN,
-            "CN_SZ": TrdMarket.CN_SZ,
-            "CN_SH": TrdMarket.CN_SH,
+            "HKCC": TrdMarket.HKCC,
             "SG": TrdMarket.SG,
             "JP": TrdMarket.JP,
         }
