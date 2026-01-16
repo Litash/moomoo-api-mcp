@@ -189,7 +189,8 @@ async def test_unlock_trade_env_vars(mcp_context, mock_trade_service):
     import os
     from unittest.mock import patch
 
-    with patch.dict(os.environ, {"MOOMOO_TRADE_PASSWORD": "env_password"}):
+    # Use clear=True to remove other env vars like MOOMOO_TRADE_PASSWORD_MD5
+    with patch.dict(os.environ, {"MOOMOO_TRADE_PASSWORD": "env_password"}, clear=True):
         result = await unlock_trade(mcp_context)
 
     assert result["status"] == "unlocked"
