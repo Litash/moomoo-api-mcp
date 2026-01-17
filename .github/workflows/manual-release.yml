@@ -9,16 +9,13 @@ on:
         type: string
 
 jobs:
-  release:
-    name: Bump Version, Tag, and Publish
+  bump-tag:
+    name: Bump Version and Tag
     runs-on: ubuntu-latest
-    environment: 
-      name: pypi
-      url: https://pypi.org/p/moomoo-api-mcp
     permissions:
       contents: write # Needed to push commit and tag
-      id-token: write # Needed for PyPI publishing
-
+    outputs:
+      tag_name: ${{ steps.set_output.outputs.tag_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,14 +58,14 @@ jobs:
              git push origin "v$VERSION"
           fi
 
-      # --- Publish Steps (Integrated to avoid GITHUB_TOKEN trigger limits) ---
+      - name: Set Output
+        id: set_output
+        run: echo "tag_name=v${{ inputs.version }}" >> "$GITHUB_OUTPUT"
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: Build package
-        run: uv build
-
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        # Trusted Publishing (OIDC) enabled by 'environment: pypi' and 'permissions: id-token: write'
+  publish:
+    name: Publish Release
+    needs: bump-tag
+    uses: ./.github/workflows/publish.yml
+    with:
+      ref: ${{ needs.bump-tag.outputs.tag_name }}
+    secrets: inherit
