@@ -7,7 +7,7 @@ packages = ["src/moomoo_mcp"]
 
 [project]
 name = "moomoo-api-mcp"
-version = "0.1.2"
+version = "0.1.3"
 description = "Moomoo API MCP Server"
 readme = "README.md"
 license = { file = "LICENSE" }
