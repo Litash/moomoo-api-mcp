@@ -65,7 +65,7 @@ jobs:
   publish:
     name: Publish Release
     needs: bump-tag
-    uses: ./.github/workflows/publish.yml
+    uses: ./.github/workflows/python-publish.yml
     with:
       ref: ${{ needs.bump-tag.outputs.tag_name }}
     secrets: inherit

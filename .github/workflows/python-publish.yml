@@ -11,6 +11,13 @@ name: Upload Python Package
 on:
   release:
     types: [published]
+  workflow_call:
+      inputs:
+        ref:
+          description: "The commit or tag ref to build and publish"
+          required: false
+          type: string
+          default: ""
 
 permissions:
   contents: read
@@ -21,16 +28,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          ref: ${{ inputs.ref }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Build release distributions
-        run: |
-          # NOTE: put your own distribution build steps here.
-          python -m pip install build
-          python -m build
+        run: uv build
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
@@ -51,7 +56,7 @@ jobs:
     environment:
       name: pypi
       # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
-      # url: https://pypi.org/p/YOURPROJECT
+      url: https://pypi.org/p/moomoo-api-mcp
       #
       # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
       # ALTERNATIVE: exactly, uncomment the following line instead:
