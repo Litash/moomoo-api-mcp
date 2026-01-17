@@ -65,6 +65,9 @@ jobs:
   publish:
     name: Publish Release
     needs: bump-tag
+    permissions:
+      contents: write
+      id-token: write
     uses: ./.github/workflows/python-publish.yml
     with:
       ref: ${{ needs.bump-tag.outputs.tag_name }}
