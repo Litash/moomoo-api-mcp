@@ -46,34 +46,30 @@ An MCP (Model Context Protocol) server for the Moomoo trading platform. This ser
 
 ## Installation
 
-### Method 1: Quick Start with uvx (Recommended)
+### Quick Start (Recommended)
 
-If you have `uv` installed, you can run the server directly without manual installation:
+You can run the server directly using `uvx` (part of the [uv](https://github.com/astral-sh/uv) toolkit):
 
 ```bash
 uvx moomoo-api-mcp
 ```
 
-Or install it permanently as a tool:
+### Permanent Installation
+
+To install it as a persistent tool available in your shell:
 
 ```bash
 uv tool install moomoo-api-mcp
+# Then run:
+moomoo-mcp
 ```
 
-### Method 2: Manual Setup (Development)
-
-#### Prerequisites
-
-- [Python 3.10+](https://www.python.org/)
-- [uv](https://github.com/astral-sh/uv) package manager
-- [Moomoo OpenD](https://www.moomoo.com/download/OpenAPI) gateway installed and running
-
-#### Steps
+### Development Setup
 
 1. **Clone the repository**:
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Litash/moomoo-api-mcp.git
    cd moomoo-api-mcp
    ```
 
@@ -83,54 +79,52 @@ uv tool install moomoo-api-mcp
    uv sync
    ```
 
-3. **Configure OpenD**:
-   - Launch OpenD and log in with your Moomoo account.
-   - Ensure the gateway is listening on `127.0.0.1:11111` (default).
-
-## Usage
-
-### Run Locally
-
-Start the MCP server:
-
-```bash
-uv run moomoo-mcp
-```
-
-### Environment Variables
-
-To enable **REAL account** access, set your trading password via environment variable:
-
-| Variable                    | Description                                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------------- |
-| `MOOMOO_TRADE_PASSWORD`     | Your Moomoo trading password (plain text)                                                   |
-| `MOOMOO_TRADE_PASSWORD_MD5` | MD5 hash of your trading password (alternative)                                             |
-| `MOOMOO_SECURITY_FIRM`      | Securities firm: `FUTUSG` (Singapore), `FUTUSECURITIES` (HK), `FUTUINC` (US), `FUTUAU` (AU) |
-
-> **Note**: If both password vars are set, `MOOMOO_TRADE_PASSWORD` takes precedence.
-
-Without these variables, the server runs in **SIMULATE-only mode** (paper trading).
-
-### Generating MD5 Password Hash
-
-If you prefer not to store your plain text password in environment variables, you can generate an MD5 hash using PowerShell:
-
-1. Open PowerShell
-2. Run the following command (replace `your_trading_password` with your actual password):
-
-   ```powershell
-   $password = "your_trading_password"
-   $md5 = [System.Security.Cryptography.HashAlgorithm]::Create("MD5")
-   $utf8 = [System.Text.Encoding]::UTF8
-   $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($password))).Replace("-", "").ToLower()
-   Write-Host "MD5 Hash: $hash"
+3. **Run locally**:
+   ```bash
+   uv run moomoo-mcp
    ```
 
-3. Copy the output hash and set it as `MOOMOO_TRADE_PASSWORD_MD5`.
+---
 
-### Configure Claude Desktop
+## Configuration
+
+### 1. Prerequisites
+
+- **Moomoo OpenD**: Ensure the Moomoo OpenD gateway is running and listening on `127.0.0.1:11111` (default).
+
+### 2. Environment Variables
+
+To enable **REAL account** access, you must securely provide your credentials.
+
+| Variable                | Description                                | Example  |
+| ----------------------- | ------------------------------------------ | -------- |
+| `MOOMOO_TRADE_PASSWORD` | Your trading password (plain text)         | `123456` |
+| `MOOMOO_SECURITY_FIRM`  | Your broker region (e.g., FUTUSG, FUTUINC) | `FUTUSG` |
+
+> **Note**: Without these, the server runs in **SIMULATE-only mode** (paper trading).
+
+### 3. Configure Claude Desktop
 
 Add the server to your `claude_desktop_config.json`:
+
+#### Option A: Using PyPI Package (Recommended)
+
+```json
+{
+  "mcpServers": {
+    "moomoo": {
+      "command": "uvx",
+      "args": ["moomoo-api-mcp"],
+      "env": {
+        "MOOMOO_TRADE_PASSWORD": "your_trading_password",
+        "MOOMOO_SECURITY_FIRM": "FUTUSG"
+      }
+    }
+  }
+}
+```
+
+#### Option B: Local Development
 
 ```json
 {
@@ -152,7 +146,7 @@ Add the server to your `claude_desktop_config.json`:
 }
 ```
 
-> **Security**: Never commit your password to git. The `env` block in the config file is local-only.
+> **Security**: Never commit your password to version control. The `env` block in the config file remains local.
 
 ## AI Agent Guidance
 
