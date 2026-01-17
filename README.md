@@ -48,10 +48,11 @@ An MCP (Model Context Protocol) server for the Moomoo trading platform. This ser
 
 ### Quick Start (Recommended)
 
-You can run the server directly using `uvx` (part of the [uv](https://github.com/astral-sh/uv) toolkit):
+You can run the server directly using `uvx` (part of the [uv](https://github.com/astral-sh/uv) toolkit).
+Using `--refresh` ensures you are always running the latest version:
 
 ```bash
-uvx moomoo-api-mcp
+uvx --refresh moomoo-api-mcp
 ```
 
 ### Permanent Installation
@@ -131,7 +132,7 @@ Add the server to your `claude_desktop_config.json`:
   "mcpServers": {
     "moomoo": {
       "command": "uvx",
-      "args": ["moomoo-api-mcp"],
+      "args": ["--refresh", "moomoo-api-mcp"],
       "env": {
         "MOOMOO_TRADE_PASSWORD": "your_trading_password",
         "MOOMOO_SECURITY_FIRM": "FUTUSG"
@@ -140,6 +141,8 @@ Add the server to your `claude_desktop_config.json`:
   }
 }
 ```
+
+> **Note**: The `--refresh` flag ensures you always have the latest version but may increase startup time due to version checking. You can remove it once you have the correct version installed.
 
 #### Option B: Local Development
 
