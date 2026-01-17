@@ -11,7 +11,7 @@ version = "0.1.0"
 description = "Moomoo API MCP Server"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 authors = [
     { name = "Yichen Lu", email = "yichen.lu529@gamil.com" }
 ]
@@ -26,7 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
+
     "Topic :: Office/Business :: Financial :: Investment",
 ]
 urls.Repository = "https://github.com/Litash/moomoo-api-mcp"
@@ -38,7 +38,7 @@ dependencies = [
 ]
 
 [project.scripts]
-moomoo-mcp = "moomoo_mcp.server:main" # Assuming we might want an entry point, but maybe not strictly required yet.
+moomoo-api-mcp = "moomoo_mcp.server:main"
 
 [project.optional-dependencies]
 dev = [
@@ -49,7 +49,7 @@ dev = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py314"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [

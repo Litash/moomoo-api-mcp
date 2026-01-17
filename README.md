@@ -61,8 +61,10 @@ To install it as a persistent tool available in your shell:
 ```bash
 uv tool install moomoo-api-mcp
 # Then run:
-moomoo-mcp
+moomoo-api-mcp
 ```
+
+> **Note**: The `moomoo-api` Python SDK and other dependencies will be installed automatically.
 
 ### Development Setup
 
@@ -81,7 +83,7 @@ moomoo-mcp
 
 3. **Run locally**:
    ```bash
-   uv run moomoo-mcp
+   uv run moomoo-api-mcp
    ```
 
 ---
@@ -90,7 +92,22 @@ moomoo-mcp
 
 ### 1. Prerequisites
 
-- **Moomoo OpenD**: Ensure the Moomoo OpenD gateway is running and listening on `127.0.0.1:11111` (default).
+#### Moomoo OpenD (Required)
+
+The MCP server communicates with the Moomoo API via **Moomoo OpenD**, a local gateway application. You **MUST** install and run this first.
+
+1. **Download OpenD**:
+   - Visit the [Moomoo Open API Download Page](https://www.moomoo.com/download/opend).
+   - Download the version appropriate for your OS (Windows/Mac/Linux).
+
+2. **Install & Run**:
+   - Install the application.
+   - Launch **Moomoo OpenD**.
+   - Log in with your Moomoo account credentials.
+
+3. **Configure**:
+   - Ensure the listening port is set to `11111` (this is the default).
+   - **Note**: The MCP server connects to `127.0.0.1:11111` by default.
 
 ### 2. Environment Variables
 
@@ -135,7 +152,7 @@ Add the server to your `claude_desktop_config.json`:
         "--directory",
         "C:\\path\\to\\moomoo-api-mcp",
         "run",
-        "moomoo-mcp"
+        "moomoo-api-mcp"
       ],
       "env": {
         "MOOMOO_TRADE_PASSWORD": "your_trading_password",
