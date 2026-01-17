@@ -4,12 +4,18 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
+
 from mcp.server.fastmcp import FastMCP
+from moomoo.common import ft_logger
 from moomoo_mcp.services.base_service import MoomooService
 from moomoo_mcp.services.market_data_service import MarketDataService
 from moomoo_mcp.services.trade_service import TradeService
 
 logger = logging.getLogger(__name__)
+
+# Disable moomoo library console logging to prevent corruption of MCP stdout protocol
+if hasattr(ft_logger, "logger") and hasattr(ft_logger.logger, "console_logger"):
+    ft_logger.logger.console_logger.handlers = []
 
 
 @dataclass
