@@ -13,9 +13,15 @@ from moomoo_mcp.services.trade_service import TradeService
 
 logger = logging.getLogger(__name__)
 
+
 # Disable moomoo library console logging to prevent corruption of MCP stdout protocol
 if hasattr(ft_logger, "logger") and hasattr(ft_logger.logger, "console_logger"):
+    # Clear existing handlers
     ft_logger.logger.console_logger.handlers = []
+    # Replace the internal consoleHandler reference with a NullHandler.
+    # This ensures that when fontColor/info/error is called and it tries to re-add 
+    # self.consoleHandler, it adds a harmless NullHandler instead of a StreamHandler.
+    ft_logger.logger.consoleHandler = logging.NullHandler()
 
 
 @dataclass
