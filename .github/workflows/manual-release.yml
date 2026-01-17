@@ -40,11 +40,22 @@ jobs:
         run: |
           VERSION="${{ inputs.version }}"
           git add pyproject.toml
-          git commit -m "chore: release v$VERSION"
-          git tag "v$VERSION"
           
-          git push origin main
-          git push origin "v$VERSION"
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit (version likely already bumped). Proceeding to tag."
+          else
+            git commit -m "chore: release v$VERSION"
+            git push origin main
+          fi
+          
+          # Check if tag exists to avoid error
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+             echo "Tag v$VERSION already exists. Skipping tag creation."
+          else
+             git tag "v$VERSION"
+             git push origin "v$VERSION"
+          fi
 
       # We include the publish steps here directly. 
       # Pushing the tag might trigger 'publish.yml', but we can ensure it happens here 
