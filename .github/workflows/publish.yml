@@ -1,0 +1,42 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  pypi-publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/moomoo-api-mcp
+    permissions:
+      id-token: write  # MANDATORY for Trusted Publishing
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # If configured for Trusted Publishing, this token input is ignored by the action logic if OIDC works,
+          # or we can omit it. However, keeping it allows fallback to 'secrets.PYPI_API_TOKEN' if someone
+          # prefers the refined token method. The action automatically detects OIDC if 'id-token: write' is set
+          # and no password is provided, or if password is provided it uses that.
+          # To prefer Trusted Publishing (no secret), we can leave 'password' unset.
+          # But for the user's initial setup (token), we need it.
+          # The 'gh-action-pypi-publish' docs say: "If you want to use Trusted Publishing, do not provide a username or password."
+          # So we will use a conditional or just rely on the user following the guide.
+          # RECOMMENDATION: Use Trusted Publishing. We will comment out the password line and advise the user.
+          # Updating the plan: We will support BOTH by using the secret if it exists, or OIDC if not.
+          # Actually, the action handles `password` being empty by trying OIDC.
+          password: ${{ secrets.PYPI_API_TOKEN }}

@@ -93,3 +93,6 @@ Thumbs.db
 
 # MCP
 debug.log
+
+# Skills
+.agent/skills/

@@ -46,13 +46,29 @@ An MCP (Model Context Protocol) server for the Moomoo trading platform. This ser
 
 ## Installation
 
-### Prerequisites
+### Method 1: Quick Start with uvx (Recommended)
 
-- [Python 3.14+](https://www.python.org/)
+If you have `uv` installed, you can run the server directly without manual installation:
+
+```bash
+uvx moomoo-api-mcp
+```
+
+Or install it permanently as a tool:
+
+```bash
+uv tool install moomoo-api-mcp
+```
+
+### Method 2: Manual Setup (Development)
+
+#### Prerequisites
+
+- [Python 3.10+](https://www.python.org/)
 - [uv](https://github.com/astral-sh/uv) package manager
 - [Moomoo OpenD](https://www.moomoo.com/download/OpenAPI) gateway installed and running
 
-### Setup
+#### Steps
 
 1. **Clone the repository**:
 
