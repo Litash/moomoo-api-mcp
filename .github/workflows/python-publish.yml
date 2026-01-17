@@ -73,3 +73,26 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: release-build
+    permissions:
+      contents: write
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          # Use inputs.ref which contains the tag name (e.g., v0.1.0)
+          # Fallback to github.ref_name if triggered by release event (though unlikely to duplicate)
+          tag_name: ${{ inputs.ref || github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
