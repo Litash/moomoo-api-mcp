@@ -1,0 +1,56 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "New version number (e.g., 0.1.1)"
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Bump Version, Tag, and Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to push commit and tag
+      id-token: write # Needed for PyPI publishing
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump Version in pyproject.toml
+        run: |
+          VERSION="${{ inputs.version }}"
+          # Use sed to replace version line. Assumes strict format: version = "..."
+          sed -i 's/^version = ".*"/version = "'$VERSION'"/' pyproject.toml
+          
+          # Verify change
+          grep "version = \"$VERSION\"" pyproject.toml
+
+      - name: Commit and Tag
+        run: |
+          VERSION="${{ inputs.version }}"
+          git add pyproject.toml
+          git commit -m "chore: release v$VERSION"
+          git tag "v$VERSION"
+          
+          git push origin main
+          git push origin "v$VERSION"
+
+      # We include the publish steps here directly. 
+      # Pushing the tag might trigger 'publish.yml', but we can ensure it happens here 
+      # or let the tag trigger handle it. 
+      # Since pushing a tag triggers 'publish.yml', we can actually STOP here and let that workflow take over.
+      # This prevents double-publishing or race conditions.
+      # However, if we want to BE SURE, we can verify the tag push worked.
+      # Strategy: Let the 'publish.yml' handle the actual publish to keep things DRY.
+      # This workflow is just "Bump & Tag".
