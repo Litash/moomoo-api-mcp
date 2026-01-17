@@ -12,6 +12,9 @@ jobs:
   release:
     name: Bump Version, Tag, and Publish
     runs-on: ubuntu-latest
+    environment: 
+      name: pypi
+      url: https://pypi.org/p/moomoo-api-mcp
     permissions:
       contents: write # Needed to push commit and tag
       id-token: write # Needed for PyPI publishing
@@ -57,11 +60,14 @@ jobs:
              git push origin "v$VERSION"
           fi
 
-      # We include the publish steps here directly. 
-      # Pushing the tag might trigger 'publish.yml', but we can ensure it happens here 
-      # or let the tag trigger handle it. 
-      # Since pushing a tag triggers 'publish.yml', we can actually STOP here and let that workflow take over.
-      # This prevents double-publishing or race conditions.
-      # However, if we want to BE SURE, we can verify the tag push worked.
-      # Strategy: Let the 'publish.yml' handle the actual publish to keep things DRY.
-      # This workflow is just "Bump & Tag".
+      # --- Publish Steps (Integrated to avoid GITHUB_TOKEN trigger limits) ---
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # Trusted Publishing (OIDC) enabled by 'environment: pypi' and 'permissions: id-token: write'
