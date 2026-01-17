@@ -38,7 +38,7 @@ dependencies = [
 ]
 
 [project.scripts]
-moomoo-mcp = "moomoo_mcp.server:main" # Assuming we might want an entry point, but maybe not strictly required yet.
+moomoo-api-mcp = "moomoo_mcp.server:main"
 
 [project.optional-dependencies]
 dev = [
