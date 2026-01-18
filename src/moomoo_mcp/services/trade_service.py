@@ -24,6 +24,60 @@ class TradeService:
         self.port = port
         self.security_firm = security_firm
         self.trade_ctx: OpenSecTradeContext | None = None
+        
+    def _get_market_from_code(self, code: str) -> str | None:
+        """Extract market from stock code (e.g., 'JP' from 'JP.8058')."""
+        if "." in code:
+            return code.split(".")[0].upper()
+        return None
+
+    def _find_best_account(self, trd_env: str, market: str) -> int:
+        """Find the best account for the given environment and market.
+
+        Args:
+            trd_env: Trading environment ('REAL' or 'SIMULATE').
+            market: Target market (e.g., 'JP', 'US', 'HK').
+
+        Returns:
+            Account ID if found, otherwise 0 (default).
+            
+        Raises:
+             ValueError: If no suitable account is found.
+        """
+        try:
+            accounts = self.get_accounts()
+        except Exception:
+            # If we can't get accounts, fallback to default
+            return 0
+
+        # Filter by environment
+        env_accounts = [acc for acc in accounts if acc.get("trd_env") == trd_env]
+        
+        if not env_accounts:
+             # If no accounts for env, let SDK handle the error downstream or return 0
+             return 0
+
+        # Moomoo market codes mapping to market_auth strings
+        # Adjust as needed based on actual API values
+        target_market = market.upper()
+        
+        supported_markets = []
+
+        for acc in env_accounts:
+            # Check market_auth which is a list like ['HK', 'US']
+            # Note: The field name might be 'trdmarket_auth' based on debug output
+            market_auth = acc.get("market_auth") or acc.get("trdmarket_auth") or []
+            supported_markets.extend(market_auth)
+            
+            if target_market in market_auth:
+                return acc.get("acc_id", 0)
+        
+        # If we are here, we found accounts for the env, but none support the market
+        unique_supported = sorted(list(set(supported_markets)))
+        raise ValueError(
+            f"No account found in {trd_env} environment that supports trading in {market}. "
+            f"Available accounts support: {unique_supported}"
+        )
 
     def connect(self) -> None:
         """Initialize connection to OpenD trade context."""
@@ -307,6 +361,15 @@ class TradeService:
         """
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
+
+        # Smart account selection if acc_id is default (0)
+        if acc_id == 0:
+            market = self._get_market_from_code(code)
+            if market in ["US", "HK", "CN", "HKCC", "SG", "JP"]:
+                # Try to find a specific account for this market
+                # If valid account found, use it. 
+                # If none found that support the market, it will raise ValueError
+                acc_id = self._find_best_account(trd_env, market)
 
         stop_order_types = {
             "STOP",
