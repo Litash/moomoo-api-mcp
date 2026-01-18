@@ -46,16 +46,16 @@ class TradeService:
         """
         try:
             accounts = self.get_accounts()
-        except Exception:
-            # If we can't get accounts, fallback to default
-            return 0
+        except Exception as e:
+            # Re-raise as a ValueError to ensure the caller knows account finding failed.
+            raise ValueError("Failed to retrieve account list from the API.") from e
 
         # Filter by environment
         env_accounts = [acc for acc in accounts if acc.get("trd_env") == trd_env]
         
         if not env_accounts:
-             # If no accounts for env, let SDK handle the error downstream or return 0
-             return 0
+            # Raise an error if no accounts are found for the environment.
+            raise ValueError(f"No accounts found for the '{trd_env}' environment.")
 
         # Moomoo market codes mapping to market_auth strings
         # Adjust as needed based on actual API values
@@ -70,7 +70,7 @@ class TradeService:
             supported_markets.extend(market_auth)
             
             if target_market in market_auth:
-                return acc.get("acc_id", 0)
+                return acc["acc_id"]
         
         # If we are here, we found accounts for the env, but none support the market
         unique_supported = sorted(list(set(supported_markets)))
@@ -365,7 +365,7 @@ class TradeService:
         # Smart account selection if acc_id is default (0)
         if acc_id == 0:
             market = self._get_market_from_code(code)
-            if market in ["US", "HK", "CN", "HKCC", "SG", "JP"]:
+            if market:
                 # Try to find a specific account for this market
                 # If valid account found, use it. 
                 # If none found that support the market, it will raise ValueError

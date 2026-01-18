@@ -42,6 +42,21 @@ def test_find_best_account_failure(trade_service):
         with pytest.raises(ValueError, match="No account found in SIMULATE environment that supports trading in JP"):
             trade_service._find_best_account("SIMULATE", "JP")
 
+def test_find_best_account_api_failure(trade_service):
+    """Test that API failures raise ValueError instead of silently returning 0."""
+    with patch.object(trade_service, "get_accounts", side_effect=RuntimeError("API error")):
+        with pytest.raises(ValueError, match="Failed to retrieve account list from the API"):
+            trade_service._find_best_account("SIMULATE", "JP")
+
+def test_find_best_account_no_accounts_for_env(trade_service):
+    """Test that missing accounts for environment raises ValueError."""
+    mock_accounts = [
+        {"acc_id": 1, "trd_env": "REAL", "trdmarket_auth": ["JP"]},
+    ]
+    with patch.object(trade_service, "get_accounts", return_value=mock_accounts):
+        with pytest.raises(ValueError, match="No accounts found for the 'SIMULATE' environment"):
+            trade_service._find_best_account("SIMULATE", "JP")
+
 def test_place_order_auto_select_account(trade_service):
     mock_accounts = [
         {"acc_id": 999, "trd_env": "SIMULATE", "trdmarket_auth": ["JP"]},
