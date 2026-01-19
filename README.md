@@ -198,6 +198,23 @@ If you prefer to use a simulation account instead, please let me know."
 [Proceeds to unlock_trade → get_account_summary]
 ```
 
+### Order Status Filter Usage
+
+When using `get_orders` or `get_history_orders`, the `status_filter_list` parameter accepts an array of **string values**:
+
+```json
+["SUBMITTED", "FILLED_ALL", "CANCELLED_ALL"]
+```
+
+**Valid status strings:**
+
+- `UNSUBMITTED`, `WAITING_SUBMIT`, `SUBMITTING`, `SUBMIT_FAILED`
+- `SUBMITTED`, `FILLED_PART`, `FILLED_ALL`
+- `CANCELLING_PART`, `CANCELLING_ALL`, `CANCELLED_PART`, `CANCELLED_ALL`
+- `REJECTED`, `DISABLED`, `DELETED`, `FAILED`, `NONE`
+
+> **Note**: The server automatically converts these strings to the required SDK enum format. If no orders match the filter, an empty list is returned.
+
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
