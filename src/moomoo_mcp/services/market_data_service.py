@@ -164,3 +164,56 @@ class MarketDataService:
             raise RuntimeError(f"get_order_book failed: {data}")
 
         return data
+
+    def get_user_security_group(self, group_type: int = 0) -> list[dict]:
+        """Get list of user-defined security groups (watchlists).
+
+        Args:
+            group_type: Type of groups to return. Options:
+                - 0: All groups (default)
+                - 1: Custom groups only
+                - 2: System groups only
+
+        Returns:
+            List of group dictionaries with group_name, group_id, etc.
+
+        Raises:
+            RuntimeError: If retrieval fails.
+        """
+        if not self.quote_ctx:
+            raise RuntimeError("Quote context not connected")
+
+        from moomoo import UserSecurityGroupType
+
+        group_type_enum = UserSecurityGroupType.ALL
+        if group_type == 1:
+            group_type_enum = UserSecurityGroupType.CUSTOM
+        elif group_type == 2:
+            group_type_enum = UserSecurityGroupType.SYSTEM
+
+        ret, data = self.quote_ctx.get_user_security_group(group_type=group_type_enum)
+        if ret != RET_OK:
+            raise RuntimeError(f"get_user_security_group failed: {data}")
+
+        return data.to_dict("records")
+
+    def get_user_security(self, group_name: str) -> list[dict]:
+        """Get list of securities in a specific user-defined group (watchlist).
+
+        Args:
+            group_name: Name of the security group (e.g., 'Favorites').
+
+        Returns:
+            List of security dictionaries with code, name, lot_size, etc.
+
+        Raises:
+            RuntimeError: If retrieval fails.
+        """
+        if not self.quote_ctx:
+            raise RuntimeError("Quote context not connected")
+
+        ret, data = self.quote_ctx.get_user_security(group_name)
+        if ret != RET_OK:
+            raise RuntimeError(f"get_user_security failed: {data}")
+
+        return data.to_dict("records")

@@ -1,6 +1,6 @@
 """Trade service for managing Moomoo trading context and account operations."""
 
-from moomoo import OpenSecTradeContext, RET_OK, SecurityFirm, TrdMarket
+from moomoo import OpenSecTradeContext, OrderStatus, RET_OK, SecurityFirm, TrdMarket
 
 
 class TradeService:
@@ -24,7 +24,45 @@ class TradeService:
         self.port = port
         self.security_firm = security_firm
         self.trade_ctx: OpenSecTradeContext | None = None
-        
+
+    def _convert_status_filter(
+        self, status_filter_list: list[str] | None
+    ) -> list | None:
+        """Convert string status values to OrderStatus enum values.
+
+        The Moomoo SDK expects OrderStatus enum values, not strings.
+        This method converts user-provided string values to the proper enum format.
+
+        Args:
+            status_filter_list: List of status strings like ['SUBMITTED', 'FILLED_ALL'].
+
+        Returns:
+            List of OrderStatus enum values, or None if input is None.
+
+        Raises:
+            ValueError: If an invalid status string is provided.
+        """
+        if status_filter_list is None:
+            return None
+
+        converted = []
+        for status_str in status_filter_list:
+            # OrderStatus has the attribute matching the string (e.g., OrderStatus.SUBMITTED)
+            status_enum = getattr(OrderStatus, status_str.upper(), None)
+            if status_enum is None:
+                valid_statuses = [
+                    "UNSUBMITTED", "WAITING_SUBMIT", "SUBMITTING", "SUBMIT_FAILED",
+                    "SUBMITTED", "FILLED_PART", "FILLED_ALL",
+                    "CANCELLING_PART", "CANCELLING_ALL", "CANCELLED_PART", "CANCELLED_ALL",
+                    "REJECTED", "DISABLED", "DELETED", "FAILED", "NONE"
+                ]
+                raise ValueError(
+                    f"Invalid order status: '{status_str}'. "
+                    f"Valid options: {valid_statuses}"
+                )
+            converted.append(status_enum)
+        return converted
+
     def _get_market_from_code(self, code: str) -> str | None:
         """Extract market from stock code (e.g., 'JP' from 'JP.8058')."""
         if "." in code:
@@ -499,26 +537,36 @@ class TradeService:
 
         Args:
             code: Filter by stock code.
-            status_filter_list: Filter by order statuses.
+            status_filter_list: Filter by order statuses (as strings).
+                Valid options: UNSUBMITTED, WAITING_SUBMIT, SUBMITTING, SUBMIT_FAILED,
+                SUBMITTED, FILLED_PART, FILLED_ALL, CANCELLING_PART, CANCELLING_ALL,
+                CANCELLED_PART, CANCELLED_ALL, REJECTED, DISABLED, DELETED, FAILED, NONE.
             trd_env: Trading environment.
             acc_id: Account ID.
             refresh_cache: Whether to refresh cache.
 
         Returns:
-            List of order dictionaries.
+            List of order dictionaries. Returns empty list if no orders found.
         """
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
+        # Convert string status values to OrderStatus enum values
+        converted_status_filter = self._convert_status_filter(status_filter_list)
+
         ret, data = self.trade_ctx.order_list_query(
             code=code,
-            status_filter_list=status_filter_list,
+            status_filter_list=converted_status_filter,
             trd_env=trd_env,
             acc_id=acc_id,
             refresh_cache=refresh_cache,
         )
         if ret != RET_OK:
             raise RuntimeError(f"order_list_query failed: {data}")
+
+        # Handle None or empty DataFrame gracefully
+        if data is None or data.empty:
+            return []
 
         return data.to_dict("records")
 
@@ -567,21 +615,27 @@ class TradeService:
 
         Args:
             code: Filter by stock code.
-            status_filter_list: Filter by order statuses.
+            status_filter_list: Filter by order statuses (as strings).
+                Valid options: UNSUBMITTED, WAITING_SUBMIT, SUBMITTING, SUBMIT_FAILED,
+                SUBMITTED, FILLED_PART, FILLED_ALL, CANCELLING_PART, CANCELLING_ALL,
+                CANCELLED_PART, CANCELLED_ALL, REJECTED, DISABLED, DELETED, FAILED, NONE.
             start: Start date (YYYY-MM-DD).
             end: End date (YYYY-MM-DD).
             trd_env: Trading environment.
             acc_id: Account ID.
 
         Returns:
-            List of historical order dictionaries.
+            List of historical order dictionaries. Returns empty list if no orders found.
         """
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
+        # Convert string status values to OrderStatus enum values
+        converted_status_filter = self._convert_status_filter(status_filter_list)
+
         ret, data = self.trade_ctx.history_order_list_query(
             code=code,
-            status_filter_list=status_filter_list,
+            status_filter_list=converted_status_filter,
             start=start,
             end=end,
             trd_env=trd_env,
@@ -589,6 +643,10 @@ class TradeService:
         )
         if ret != RET_OK:
             raise RuntimeError(f"history_order_list_query failed: {data}")
+
+        # Handle None or empty DataFrame gracefully
+        if data is None or data.empty:
+            return []
 
         return data.to_dict("records")
 

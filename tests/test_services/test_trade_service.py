@@ -233,6 +233,9 @@ class TestPlaceOrder:
 
     def test_place_order_error(self, trade_service_with_mock, mock_trade_ctx):
         """Test order placement failure."""
+        # Setup mock for smart account selection
+        acc_df = pd.DataFrame([{"acc_id": 123, "trd_env": "SIMULATE", "market_auth": ["US"]}])
+        mock_trade_ctx.get_acc_list.return_value = (0, acc_df)
         mock_trade_ctx.place_order.return_value = (-1, "Order rejected")
 
         with pytest.raises(RuntimeError, match="place_order failed"):
@@ -537,6 +540,8 @@ class TestGetHistoryOrders:
         self, trade_service_with_mock, mock_trade_ctx
     ):
         """Test history orders with code and status filters."""
+        from moomoo import OrderStatus
+
         df = pd.DataFrame([])
         mock_trade_ctx.history_order_list_query.return_value = (0, df)
 
@@ -547,7 +552,8 @@ class TestGetHistoryOrders:
 
         call_kwargs = mock_trade_ctx.history_order_list_query.call_args.kwargs
         assert call_kwargs["code"] == "US.AAPL"
-        assert call_kwargs["status_filter_list"] == ["FILLED_ALL"]
+        # Status strings should be converted to OrderStatus enum values
+        assert call_kwargs["status_filter_list"] == [OrderStatus.FILLED_ALL]
 
     def test_get_history_orders_error(self, trade_service_with_mock, mock_trade_ctx):
         """Test history order retrieval failure."""
@@ -597,3 +603,77 @@ class TestGetHistoryDeals:
 
         with pytest.raises(RuntimeError, match="history_deal_list_query failed"):
             trade_service_with_mock.get_history_deals()
+
+
+class TestStatusFilterConversion:
+    """Tests for status_filter_list string to enum conversion."""
+
+    def test_get_orders_converts_status_filter_to_enum(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
+        """Test that get_orders converts string status values to OrderStatus enums."""
+        from moomoo import OrderStatus
+
+        df = pd.DataFrame([{"order_id": "123", "code": "US.AAPL"}])
+        mock_trade_ctx.order_list_query.return_value = (0, df)
+
+        trade_service_with_mock.get_orders(
+            status_filter_list=["SUBMITTED", "FILLED_ALL"],
+        )
+
+        call_kwargs = mock_trade_ctx.order_list_query.call_args.kwargs
+        assert call_kwargs["status_filter_list"] == [
+            OrderStatus.SUBMITTED,
+            OrderStatus.FILLED_ALL,
+        ]
+
+    def test_get_orders_handles_empty_result(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
+        """Test that get_orders returns empty list when no orders found."""
+        # Test with None data
+        mock_trade_ctx.order_list_query.return_value = (0, None)
+        result = trade_service_with_mock.get_orders(code="HK.00100")
+        assert result == []
+
+        # Test with empty DataFrame
+        df = pd.DataFrame([])
+        mock_trade_ctx.order_list_query.return_value = (0, df)
+        result = trade_service_with_mock.get_orders(code="HK.00100")
+        assert result == []
+
+    def test_get_history_orders_handles_empty_result(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
+        """Test that get_history_orders returns empty list when no orders found."""
+        # Test with None data
+        mock_trade_ctx.history_order_list_query.return_value = (0, None)
+        result = trade_service_with_mock.get_history_orders()
+        assert result == []
+
+        # Test with empty DataFrame
+        df = pd.DataFrame([])
+        mock_trade_ctx.history_order_list_query.return_value = (0, df)
+        result = trade_service_with_mock.get_history_orders()
+        assert result == []
+
+    def test_get_orders_invalid_status_raises_error(self, trade_service_with_mock):
+        """Test that invalid status string raises ValueError with helpful message."""
+        with pytest.raises(
+            ValueError, match="Invalid order status: 'INVALID_STATUS'"
+        ):
+            trade_service_with_mock.get_orders(
+                status_filter_list=["INVALID_STATUS"],
+            )
+
+    def test_status_filter_none_passes_none(
+        self, trade_service_with_mock, mock_trade_ctx
+    ):
+        """Test that None status_filter_list passes None to SDK."""
+        df = pd.DataFrame([{"order_id": "123", "code": "US.AAPL"}])
+        mock_trade_ctx.order_list_query.return_value = (0, df)
+
+        trade_service_with_mock.get_orders(status_filter_list=None)
+
+        call_kwargs = mock_trade_ctx.order_list_query.call_args.kwargs
+        assert call_kwargs["status_filter_list"] is None

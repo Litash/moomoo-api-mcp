@@ -159,3 +159,54 @@ async def get_order_book(
     order_book = market_data_service.get_order_book(code, num=num)
     await ctx.info(f"Retrieved order book for {code} with {num} levels")
     return order_book
+
+
+@mcp.tool()
+async def get_user_security_group(
+    ctx: Context[ServerSession, AppContext],
+    group_type: int = 0,
+) -> list[dict]:
+    """Get list of user-defined security groups (watchlists).
+
+    Returns the user's custom watchlist groups from the Moomoo app.
+
+    Args:
+        group_type: Type of groups to return. Options:
+            - 0: All groups (default)
+            - 1: Custom groups only
+            - 2: System groups only
+
+    Returns:
+        List of group dictionaries containing:
+        - group_name: Name of the group
+        - group_id: Unique identifier for the group
+    """
+    market_data_service = ctx.request_context.lifespan_context.market_data_service
+    groups = market_data_service.get_user_security_group(group_type=group_type)
+    await ctx.info(f"Retrieved {len(groups)} security groups")
+    return groups
+
+
+@mcp.tool()
+async def get_user_security(
+    ctx: Context[ServerSession, AppContext],
+    group_name: str,
+) -> list[dict]:
+    """Get list of securities in a specific user-defined group (watchlist).
+
+    Returns all stocks/securities that the user has added to a specific watchlist.
+
+    Args:
+        group_name: Name of the security group (e.g., 'Favorites', 'Tech').
+
+    Returns:
+        List of security dictionaries containing:
+        - code: Stock code (e.g., 'US.AAPL')
+        - name: Stock name
+        - lot_size: Lot size for trading
+        - stock_type: Type of security
+    """
+    market_data_service = ctx.request_context.lifespan_context.market_data_service
+    securities = market_data_service.get_user_security(group_name)
+    await ctx.info(f"Retrieved {len(securities)} securities from group '{group_name}'")
+    return securities
