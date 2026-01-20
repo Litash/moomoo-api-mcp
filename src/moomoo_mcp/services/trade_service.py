@@ -155,7 +155,7 @@ class TradeService:
     def get_assets(
         self,
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
         refresh_cache: bool = False,
         currency: str | None = None,
     ) -> dict:
@@ -170,6 +170,9 @@ class TradeService:
         Returns:
             Dictionary with asset information.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -197,7 +200,7 @@ class TradeService:
         pl_ratio_min: float | None = None,
         pl_ratio_max: float | None = None,
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
         refresh_cache: bool = False,
     ) -> list[dict]:
         """Get current positions.
@@ -214,6 +217,9 @@ class TradeService:
         Returns:
             List of position dictionaries.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -260,7 +266,7 @@ class TradeService:
         order_id: str = "",
         adjust_limit: float = 0,
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
     ) -> dict:
         """Get maximum tradable quantity for a stock.
 
@@ -276,6 +282,9 @@ class TradeService:
         Returns:
             Dictionary with max quantities for buy/sell.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -316,7 +325,7 @@ class TradeService:
         self,
         clearing_date: str = "",
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
     ) -> list[dict]:
         """Get account cash flow history.
 
@@ -328,6 +337,9 @@ class TradeService:
         Returns:
             List of cash flow record dictionaries.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -378,7 +390,7 @@ class TradeService:
         trail_value: float | None = None,
         trail_spread: float | None = None,
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
         remark: str = "",
     ) -> dict:
         """Place a new trading order.
@@ -402,6 +414,9 @@ class TradeService:
         Returns:
             Dictionary with order details including order_id.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -460,7 +475,7 @@ class TradeService:
         price: float | None = None,
         adjust_limit: float = 0,
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
     ) -> dict:
         """Modify an existing order.
 
@@ -476,6 +491,9 @@ class TradeService:
         Returns:
             Dictionary with modified order details.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -498,7 +516,7 @@ class TradeService:
         self,
         order_id: str,
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
     ) -> dict:
         """Cancel an existing order.
 
@@ -512,6 +530,9 @@ class TradeService:
         Returns:
             Dictionary with cancelled order details.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -535,7 +556,7 @@ class TradeService:
         code: str = "",
         status_filter_list: list[str] | None = None,
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
         refresh_cache: bool = False,
     ) -> list[dict]:
         """Get list of today's orders.
@@ -553,6 +574,9 @@ class TradeService:
         Returns:
             List of order dictionaries. Returns empty list if no orders found.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -579,7 +603,7 @@ class TradeService:
         self,
         code: str = "",
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
         refresh_cache: bool = False,
     ) -> list[dict]:
         """Get list of today's deals (executed trades).
@@ -593,6 +617,9 @@ class TradeService:
         Returns:
             List of deal dictionaries.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -614,7 +641,7 @@ class TradeService:
         start: str = "",
         end: str = "",
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
     ) -> list[dict]:
         """Get historical orders.
 
@@ -632,6 +659,9 @@ class TradeService:
         Returns:
             List of historical order dictionaries. Returns empty list if no orders found.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
@@ -661,7 +691,7 @@ class TradeService:
         start: str = "",
         end: str = "",
         trd_env: str = "SIMULATE",
-        acc_id: int = 0,
+        acc_id: int | str = "0",
     ) -> list[dict]:
         """Get historical deals (executed trades).
 
@@ -675,6 +705,9 @@ class TradeService:
         Returns:
             List of historical deal dictionaries.
         """
+        if isinstance(acc_id, str):
+            acc_id = int(acc_id)
+
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 

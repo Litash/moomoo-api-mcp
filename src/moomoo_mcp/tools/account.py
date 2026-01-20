@@ -31,7 +31,7 @@ async def get_accounts(
 async def get_account_summary(
     ctx: Context[ServerSession, AppContext],
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> dict:
     """Get complete account summary including assets and positions in one call.
 
@@ -69,7 +69,7 @@ async def get_account_summary(
 async def get_assets(
     ctx: Context[ServerSession, AppContext],
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
     refresh_cache: bool = False,
     currency: str | None = None,
 ) -> dict:
@@ -110,7 +110,7 @@ async def get_positions(
     pl_ratio_min: float | None = None,
     pl_ratio_max: float | None = None,
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
     refresh_cache: bool = False,
 ) -> list[dict]:
     """Get current positions.
@@ -157,7 +157,7 @@ async def get_max_tradable(
     order_id: str = "",
     adjust_limit: float = 0,
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> dict:
     """Get maximum tradable quantity for a stock.
 
@@ -218,7 +218,7 @@ async def get_cash_flow(
     ctx: Context[ServerSession, AppContext],
     clearing_date: str = "",
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> list[dict]:
     """Get account cash flow history.
 
@@ -285,10 +285,31 @@ async def unlock_trade(
     """
     import os
 
-    # If no args provided, try env vars
-    if not password and not password_md5:
+    # Helper to check if value is effectively empty or "None" string
+    def is_empty_or_none(val: str | None) -> bool:
+        if val is None:
+            return True
+        if not isinstance(val, str):
+            return False
+        val_str = val.strip()
+        return not val_str or val_str.lower() in ("none", "null")
+
+    # Check if inputs are effectively empty
+    pwd_is_empty = is_empty_or_none(password)
+    md5_is_empty = is_empty_or_none(password_md5)
+
+    # If no valid args provided, try env vars
+    if pwd_is_empty and md5_is_empty:
         password = os.environ.get("MOOMOO_TRADE_PASSWORD")
         password_md5 = os.environ.get("MOOMOO_TRADE_PASSWORD_MD5")
+        await ctx.info("Attempting to unlock using environment variables")
+    else:
+        # If one is empty but provided as "None" string, ensure it's None for the service call
+        if pwd_is_empty:
+            password = None
+        if md5_is_empty:
+            password_md5 = None
+        await ctx.info("Attempting to unlock using provided credentials")
 
     trade_service = ctx.request_context.lifespan_context.trade_service
     trade_service.unlock_trade(password=password, password_md5=password_md5)

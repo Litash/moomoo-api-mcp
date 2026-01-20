@@ -92,7 +92,7 @@ async def test_get_assets(mcp_context, mock_trade_service):
     assert result["cash"] == 10000.0
     mock_trade_service.get_assets.assert_called_once_with(
         trd_env="SIMULATE",
-        acc_id=0,
+        acc_id="0",
         refresh_cache=False,
         currency=None
     )
@@ -104,14 +104,14 @@ async def test_get_account_summary(mcp_context, mock_trade_service):
     mock_trade_service.get_assets.return_value = {"cash": 10000.0, "market_val": 5000.0}
     mock_trade_service.get_positions.return_value = [{"code": "US.AAPL", "qty": 100}]
 
-    result = await get_account_summary(mcp_context, trd_env="SIMULATE", acc_id=123)
+    result = await get_account_summary(mcp_context, trd_env="SIMULATE", acc_id="123")
 
     assert "assets" in result
     assert "positions" in result
     assert result["assets"]["cash"] == 10000.0
     assert len(result["positions"]) == 1
-    mock_trade_service.get_assets.assert_called_once_with(trd_env="SIMULATE", acc_id=123)
-    mock_trade_service.get_positions.assert_called_once_with(trd_env="SIMULATE", acc_id=123)
+    mock_trade_service.get_assets.assert_called_once_with(trd_env="SIMULATE", acc_id="123")
+    mock_trade_service.get_positions.assert_called_once_with(trd_env="SIMULATE", acc_id="123")
 
 
 @pytest.mark.asyncio
@@ -197,4 +197,27 @@ async def test_unlock_trade_env_vars(mcp_context, mock_trade_service):
     mock_trade_service.unlock_trade.assert_called_once_with(
         password="env_password",
         password_md5=None
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_assets_string_id(mcp_context, mock_trade_service):
+    """Test get_assets tool with string account ID to verify precision preservation."""
+    mock_trade_service.get_assets.return_value = {
+        "cash": 10000.0,
+        "market_val": 5000.0
+    }
+    
+    # Use a large ID that would lose precision if treated as float/number in JSON
+    large_id_str = "283726802397238513"
+
+    result = await get_assets(mcp_context, trd_env="REAL", acc_id=large_id_str)
+
+    assert result["cash"] == 10000.0
+    # Verify the service is called with the STRING ID intact
+    mock_trade_service.get_assets.assert_called_once_with(
+        trd_env="REAL",
+        acc_id=large_id_str,
+        refresh_cache=False,
+        currency=None
     )
