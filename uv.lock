@@ -367,7 +367,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/8f/db/7a01fc09f7ee1767c
 
 [[package]]
 name = "moomoo-api-mcp"
-version = "0.1.4"
+version = "0.1.6"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },

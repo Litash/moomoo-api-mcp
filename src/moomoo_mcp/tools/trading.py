@@ -21,7 +21,7 @@ def place_order(
     trail_value: float | None = None,
     trail_spread: float | None = None,
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
     remark: str = "",
 ) -> dict:
     """Place a new trading order.
@@ -101,7 +101,7 @@ def modify_order(
     price: float | None = None,
     adjust_limit: float = 0,
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> dict:
     """Modify an existing order.
 
@@ -147,7 +147,7 @@ def cancel_order(
     ctx: Context[ServerSession, AppContext],
     order_id: str,
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> dict:
     """Cancel an existing order.
 
@@ -181,7 +181,7 @@ def get_orders(
     code: str = "",
     status_filter_list: list[str] | None = None,
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
     refresh_cache: bool = False,
 ) -> list[dict]:
     """Get list of today's orders.
@@ -221,7 +221,7 @@ def get_deals(
     ctx: Context[ServerSession, AppContext],
     code: str = "",
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
     refresh_cache: bool = False,
 ) -> list[dict]:
     """Get list of today's deals (executed trades).
@@ -261,7 +261,7 @@ def get_history_orders(
     start: str = "",
     end: str = "",
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> list[dict]:
     """Get historical orders.
 
@@ -299,7 +299,7 @@ def get_history_deals(
     start: str = "",
     end: str = "",
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> list[dict]:
     """Get historical deals (executed trades).
 

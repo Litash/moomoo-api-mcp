@@ -31,7 +31,7 @@ async def get_accounts(
 async def get_account_summary(
     ctx: Context[ServerSession, AppContext],
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> dict:
     """Get complete account summary including assets and positions in one call.
 
@@ -69,7 +69,7 @@ async def get_account_summary(
 async def get_assets(
     ctx: Context[ServerSession, AppContext],
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
     refresh_cache: bool = False,
     currency: str | None = None,
 ) -> dict:
@@ -110,7 +110,7 @@ async def get_positions(
     pl_ratio_min: float | None = None,
     pl_ratio_max: float | None = None,
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
     refresh_cache: bool = False,
 ) -> list[dict]:
     """Get current positions.
@@ -157,7 +157,7 @@ async def get_max_tradable(
     order_id: str = "",
     adjust_limit: float = 0,
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> dict:
     """Get maximum tradable quantity for a stock.
 
@@ -218,7 +218,7 @@ async def get_cash_flow(
     ctx: Context[ServerSession, AppContext],
     clearing_date: str = "",
     trd_env: str = "REAL",
-    acc_id: int = 0,
+    acc_id: str = "0",
 ) -> list[dict]:
     """Get account cash flow history.
 
