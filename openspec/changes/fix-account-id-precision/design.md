@@ -9,7 +9,7 @@ The Moomoo API uses 64-bit integers for Account IDs. JSON standard (RFC 8259) do
 
 ## Decisions
 
-- **Decision**: Change `acc_id` type in MCP tool signatures from `int` to `str` (or `int | str` with `str` preference).
+- **Decision**: Change `acc_id` type in MCP tool signatures from `int` to `str`. Tools strictly enforce `str` type to prevent precision loss.
 - **Rationale**: Strings are the standard solution for handling 64-bit integers in JSON-based protocols to avoid precision loss.
 
 ## Risks / Trade-offs

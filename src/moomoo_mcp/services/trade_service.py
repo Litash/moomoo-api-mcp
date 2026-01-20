@@ -155,7 +155,7 @@ class TradeService:
     def get_assets(
         self,
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
         refresh_cache: bool = False,
         currency: str | None = None,
     ) -> dict:
@@ -200,7 +200,7 @@ class TradeService:
         pl_ratio_min: float | None = None,
         pl_ratio_max: float | None = None,
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
         refresh_cache: bool = False,
     ) -> list[dict]:
         """Get current positions.
@@ -266,7 +266,7 @@ class TradeService:
         order_id: str = "",
         adjust_limit: float = 0,
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
     ) -> dict:
         """Get maximum tradable quantity for a stock.
 
@@ -325,7 +325,7 @@ class TradeService:
         self,
         clearing_date: str = "",
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
     ) -> list[dict]:
         """Get account cash flow history.
 
@@ -390,7 +390,7 @@ class TradeService:
         trail_value: float | None = None,
         trail_spread: float | None = None,
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
         remark: str = "",
     ) -> dict:
         """Place a new trading order.
@@ -475,7 +475,7 @@ class TradeService:
         price: float | None = None,
         adjust_limit: float = 0,
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
     ) -> dict:
         """Modify an existing order.
 
@@ -516,7 +516,7 @@ class TradeService:
         self,
         order_id: str,
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
     ) -> dict:
         """Cancel an existing order.
 
@@ -556,7 +556,7 @@ class TradeService:
         code: str = "",
         status_filter_list: list[str] | None = None,
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
         refresh_cache: bool = False,
     ) -> list[dict]:
         """Get list of today's orders.
@@ -603,7 +603,7 @@ class TradeService:
         self,
         code: str = "",
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
         refresh_cache: bool = False,
     ) -> list[dict]:
         """Get list of today's deals (executed trades).
@@ -641,7 +641,7 @@ class TradeService:
         start: str = "",
         end: str = "",
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
     ) -> list[dict]:
         """Get historical orders.
 
@@ -691,7 +691,7 @@ class TradeService:
         start: str = "",
         end: str = "",
         trd_env: str = "SIMULATE",
-        acc_id: int | str = 0,
+        acc_id: int | str = "0",
     ) -> list[dict]:
         """Get historical deals (executed trades).
 
