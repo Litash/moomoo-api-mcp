@@ -71,7 +71,7 @@ async def get_assets(
     trd_env: str = "REAL",
     acc_id: int = 0,
     refresh_cache: bool = False,
-    currency: str = "",
+    currency: str | None = None,
 ) -> dict:
     """Get account assets including cash, market value, buying power.
 
@@ -86,7 +86,7 @@ async def get_assets(
             or 'SIMULATE' (no unlock needed, for testing).
         acc_id: Account ID. Must be obtained from get_accounts().
         refresh_cache: Whether to refresh the cache.
-        currency: Filter by currency.
+        currency: Filter by currency (e.g., 'HKD', 'USD'). Leave None for default.
 
     Returns:
         Dictionary with asset information including cash, market_val, total_assets, etc.

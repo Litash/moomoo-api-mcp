@@ -94,7 +94,7 @@ async def test_get_assets(mcp_context, mock_trade_service):
         trd_env="SIMULATE",
         acc_id=0,
         refresh_cache=False,
-        currency=""
+        currency=None
     )
 
 

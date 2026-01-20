@@ -27,7 +27,7 @@ class TradeService:
 
     def _convert_status_filter(
         self, status_filter_list: list[str] | None
-    ) -> list | None:
+    ) -> list:
         """Convert string status values to OrderStatus enum values.
 
         The Moomoo SDK expects OrderStatus enum values, not strings.
@@ -37,13 +37,13 @@ class TradeService:
             status_filter_list: List of status strings like ['SUBMITTED', 'FILLED_ALL'].
 
         Returns:
-            List of OrderStatus enum values, or None if input is None.
+            List of OrderStatus enum values. Returns an empty list if input is None.
 
         Raises:
             ValueError: If an invalid status string is provided.
         """
         if status_filter_list is None:
-            return None
+            return []
 
         converted = []
         for status_str in status_filter_list:
@@ -157,7 +157,7 @@ class TradeService:
         trd_env: str = "SIMULATE",
         acc_id: int = 0,
         refresh_cache: bool = False,
-        currency: str = "",
+        currency: str | None = None,
     ) -> dict:
         """Get account assets (cash, market value, etc.).
 
@@ -165,7 +165,7 @@ class TradeService:
             trd_env: Trading environment, 'REAL' or 'SIMULATE'.
             acc_id: Account ID. Must be obtained from get_accounts().
             refresh_cache: Whether to refresh the cache.
-            currency: Filter by currency.
+            currency: Filter by currency (e.g., 'HKD', 'USD'). Leave None for default.
 
         Returns:
             Dictionary with asset information.
@@ -173,12 +173,17 @@ class TradeService:
         if not self.trade_ctx:
             raise RuntimeError("Trade context not connected")
 
-        ret, data = self.trade_ctx.accinfo_query(
-            trd_env=trd_env,
-            acc_id=acc_id,
-            refresh_cache=refresh_cache,
-            currency=currency,
-        )
+        kwargs = {
+            "trd_env": trd_env,
+            "acc_id": acc_id,
+            "refresh_cache": refresh_cache,
+        }
+        if currency is not None:
+            normalized_currency = currency.strip().upper()
+            if normalized_currency:
+                kwargs["currency"] = normalized_currency
+
+        ret, data = self.trade_ctx.accinfo_query(**kwargs)
         if ret != RET_OK:
             raise RuntimeError(f"accinfo_query failed: {data}")
 

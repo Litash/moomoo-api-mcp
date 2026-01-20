@@ -666,14 +666,14 @@ class TestStatusFilterConversion:
                 status_filter_list=["INVALID_STATUS"],
             )
 
-    def test_status_filter_none_passes_none(
+    def test_status_filter_none_passes_empty_list(
         self, trade_service_with_mock, mock_trade_ctx
     ):
-        """Test that None status_filter_list passes None to SDK."""
+        """Test that None status_filter_list becomes empty list for SDK."""
         df = pd.DataFrame([{"order_id": "123", "code": "US.AAPL"}])
         mock_trade_ctx.order_list_query.return_value = (0, df)
 
         trade_service_with_mock.get_orders(status_filter_list=None)
 
         call_kwargs = mock_trade_ctx.order_list_query.call_args.kwargs
-        assert call_kwargs["status_filter_list"] is None
+        assert call_kwargs["status_filter_list"] == []
