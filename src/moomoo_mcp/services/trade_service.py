@@ -27,7 +27,7 @@ class TradeService:
 
     def _convert_status_filter(
         self, status_filter_list: list[str] | None
-    ) -> list:
+    ) -> list[OrderStatus]:
         """Convert string status values to OrderStatus enum values.
 
         The Moomoo SDK expects OrderStatus enum values, not strings.
