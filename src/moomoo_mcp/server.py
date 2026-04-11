@@ -70,7 +70,12 @@ def _auto_unlock_trade(trade_service: TradeService) -> None:
 @asynccontextmanager
 async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     """Manage moomoo connections lifecycle."""
-    moomoo_service = MoomooService()
+    # Read OpenD connection settings from environment
+    opend_host = os.environ.get("MOOMOO_OPEND_HOST", "127.0.0.1")
+    opend_port = int(os.environ.get("MOOMOO_OPEND_PORT", "11111"))
+    logger.info(f"Connecting to OpenD at {opend_host}:{opend_port}")
+
+    moomoo_service = MoomooService(host=opend_host, port=opend_port)
     moomoo_service.connect()
 
     # Read security firm from environment (e.g., FUTUSG for Singapore, FUTUSECURITIES for HK)
@@ -78,7 +83,7 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     if security_firm:
         logger.info(f"Using security firm: {security_firm}")
 
-    trade_service = TradeService(security_firm=security_firm)
+    trade_service = TradeService(host=opend_host, port=opend_port, security_firm=security_firm)
     trade_service.connect()
 
     # Auto-unlock trade if password is configured in environment
