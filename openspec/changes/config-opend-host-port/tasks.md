@@ -1,0 +1,4 @@
+- [x] Update `server.py` to read `MOOMOO_OPEND_HOST` and `MOOMOO_OPEND_PORT`
+- [x] Pass host and port to `MoomooService` and `TradeService` initialization
+- [x] Verify connection with default values (simulate environment)
+- [x] Verify connection with custom values (if possible to test, or just unit test the config loading)
