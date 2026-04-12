@@ -72,7 +72,8 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     """Manage moomoo connections lifecycle."""
     # Read OpenD connection settings from environment
     opend_host = os.environ.get("MOOMOO_OPEND_HOST", "127.0.0.1")
-    opend_port = int(os.environ.get("MOOMOO_OPEND_PORT", "11111"))
+    opend_port_raw = os.environ.get("MOOMOO_OPEND_PORT", "11111")
+    opend_port = int(opend_port_raw) if opend_port_raw.isdigit() else 11111
     logger.info(f"Connecting to OpenD at {opend_host}:{opend_port}")
 
     moomoo_service = MoomooService(host=opend_host, port=opend_port)
