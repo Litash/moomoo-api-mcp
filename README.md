@@ -58,6 +58,11 @@ You can run the server directly using `uvx` (part of the [uv](https://github.com
 Using `--refresh` ensures you are always running the latest version:
 
 ```bash
+# Optional: Set these environment variables for REAL trading access.
+# If omitted, the server will safely run in SIMULATE-only (paper trading) mode.
+export MOOMOO_TRADE_PASSWORD="your_trading_password"
+export MOOMOO_SECURITY_FIRM="FUTUSG" # e.g. FUTUSG, FUTUINC, etc.
+
 uvx --refresh moomoo-api-mcp
 ```
 
@@ -67,6 +72,12 @@ To install it as a persistent tool available in your shell:
 
 ```bash
 uv tool install moomoo-api-mcp
+
+# Optional: Set these environment variables for REAL trading access.
+# If omitted, the server will safely run in SIMULATE-only (paper trading) mode.
+export MOOMOO_TRADE_PASSWORD="your_trading_password"
+export MOOMOO_SECURITY_FIRM="FUTUSG" # e.g. FUTUSG, FUTUINC, etc.
+
 # Then run:
 moomoo-api-mcp
 ```
