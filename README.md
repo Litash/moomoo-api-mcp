@@ -2,6 +2,12 @@
 
 An MCP (Model Context Protocol) server for the Moomoo trading platform. This server allows AI agents (like Claude Desktop or Gemini) to access market data, account information, and execute trades via the moomoo-api Python SDK.
 
+## 🚀 Build Your Own Trading Agent
+
+**Take your trading to the next level with AI!**
+
+This MCP server empowers developers to build custom trading skills and strategies. By integrating this tool, you can enable any compatible AI agent to interact directly with the Moomoo platform on your behalf. Whether you want an AI assistant that monitors the market, analyzes your portfolio, or automatically executes complex trading strategies, this server provides the seamless bridge between your custom AI logic and Moomoo's powerful trading infrastructure.
+
 ## Features
 
 - **Market Data**: Real-time quotes, historical K-lines, market snapshots, and order books.
